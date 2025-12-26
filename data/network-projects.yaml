@@ -1,0 +1,156 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Carrier Network Projects Configuration
+# These projects will be provisioned via YAML-based factory pattern
+# Following the same structure as service projects
+
+network_projects:
+  # NCC Hub & Shared VPCs Project
+  nethub:
+    business_segment: "mgmt"
+    team: "network-team"
+    description: "Network Connectivity Center Hub and Shared VPCs"
+    folder: "networking"
+    deletion_policy: "PREVENT"
+    services:
+      - serviceusage.googleapis.com
+      - servicenetworking.googleapis.com
+      - networkmanagement.googleapis.com
+      - networksecurity.googleapis.com
+      - networkconnectivity.googleapis.com
+      - cloudkms.googleapis.com
+      - compute.googleapis.com
+      - logging.googleapis.com
+      - cloudresourcemanager.googleapis.com
+      - iam.googleapis.com
+      - storage.googleapis.com
+      - monitoring.googleapis.com
+      - accesscontextmanager.googleapis.com
+      - dns.googleapis.com
+    labels:
+      costcenter: "109741"
+      ixappid: "na"
+      accountowner: "ecsarchitecture_at_carrier_com"
+      businesssegment: "whq"
+      team_email: "ecsarchitecture_at_carrier_com"
+      classification: "confidential"
+      owner: "network-team"
+      environment: "prd"
+      application: "network-hub"
+      leanix_app_id: "app-network-hub"
+    envs:
+      prd:
+        ad_group_number: "40036"
+        admin_principal: "group:cloud-gcp-global-ecsadmin@gws.carrier.com"
+        shared_vpc_host: true
+
+  # Network Transit Project (SD-WAN, Cloud Router, Blue Cat DNS)
+  transit:
+    business_segment: "mgmt"
+    team: "network-team"
+    description: "Network Transit with SD-WAN Router Appliances and DNS"
+    folder: "networking"
+    deletion_policy: "PREVENT"
+    services:
+      - serviceusage.googleapis.com
+      - servicenetworking.googleapis.com
+      - networkconnectivity.googleapis.com
+      - compute.googleapis.com
+      - logging.googleapis.com
+      - monitoring.googleapis.com
+      - dns.googleapis.com
+      - cloudresourcemanager.googleapis.com
+      - iam.googleapis.com
+      - storage.googleapis.com
+    labels:
+      costcenter: "109741"
+      ixappid: "na"
+      accountowner: "ecsarchitecture_at_carrier_com"
+      businesssegment: "whq"
+      team_email: "ecsarchitecture_at_carrier_com"
+      classification: "confidential"
+      owner: "network-team"
+      environment: "prd"
+      application: "network-transit"
+      leanix_app_id: "app-network-transit"
+    envs:
+      prd:
+        ad_group_number: "40038"
+        admin_principal: "group:cloud-gcp-global-ecsadmin@gws.carrier.com"
+
+  # Network Security Project (Palo Alto Firewalls, NSI)
+  netsec:
+    business_segment: "mgmt"
+    team: "security-team"
+    description: "Network Security with Palo Alto VM-Series and NSI"
+    folder: "networking"
+    deletion_policy: "PREVENT"
+    services:
+      - serviceusage.googleapis.com
+      - servicenetworking.googleapis.com
+      - networksecurity.googleapis.com
+      - compute.googleapis.com
+      - logging.googleapis.com
+      - monitoring.googleapis.com
+      - cloudresourcemanager.googleapis.com
+      - iam.googleapis.com
+      - storage.googleapis.com
+      - iap.googleapis.com
+    labels:
+      costcenter: "109741"
+      ixappid: "na"
+      accountowner: "ecsarchitecture_at_carrier_com"
+      businesssegment: "whq"
+      team_email: "ecsarchitecture_at_carrier_com"
+      classification: "confidential"
+      owner: "security-team"
+      environment: "prd"
+      application: "network-security"
+      leanix_app_id: "app-network-security"
+    envs:
+      prd:
+        ad_group_number: "40039"
+        admin_principal: "group:cloud-gcp-global-ecsadmin@gws.carrier.com"
+
+  # Private Service Connect Host Project
+  pvpc:
+    business_segment: "mgmt"
+    team: "network-team"
+    description: "Private Service Connect Host for PSC Endpoints"
+    folder: "networking"
+    deletion_policy: "PREVENT"
+    services:
+      - serviceusage.googleapis.com
+      - servicenetworking.googleapis.com
+      - compute.googleapis.com
+      - logging.googleapis.com
+      - monitoring.googleapis.com
+      - cloudresourcemanager.googleapis.com
+      - iam.googleapis.com
+    labels:
+      costcenter: "109741"
+      ixappid: "na"
+      accountowner: "ecsarchitecture_at_carrier_com"
+      businesssegment: "whq"
+      team_email: "ecsarchitecture_at_carrier_com"
+      classification: "confidential"
+      owner: "network-team"
+      environment: "prd"
+      application: "private-service-connect"
+      leanix_app_id: "app-psc"
+    envs:
+      prd:
+        ad_group_number: "40040"
+        admin_principal: "group:cloud-gcp-global-ecsadmin@gws.carrier.com"
