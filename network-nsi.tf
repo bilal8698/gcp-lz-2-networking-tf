@@ -49,17 +49,18 @@ resource "google_network_security_firewall_endpoint" "paloalto_endpoints" {
 }
 
 # NSI Policy Configuration for Workload VPCs
+# Model 1 Production Policy - M1P -> M1P traffic should NOT be inspected
 resource "google_compute_network_firewall_policy" "nsi_policy_m1p" {
   project     = local.nethub_project
   name        = "nsi-policy-m1p"
-  description = "NSI policy for Model 1 Production - redirect traffic to Palo Alto"
+  description = "NSI policy for Model 1 Production - M1P to M1P traffic bypasses inspection, all other traffic inspected"
 
   # Rules for traffic interception
   rule {
     action      = "apply_security_profile_group"
     direction   = "EGRESS"
     priority    = 1000
-    description = "Intercept egress traffic for inspection"
+    description = "Intercept egress traffic for inspection (excludes M1P to M1P)"
 
     match {
       dest_ip_ranges = ["0.0.0.0/0"]
@@ -75,12 +76,47 @@ resource "google_compute_network_firewall_policy" "nsi_policy_m1p" {
   depends_on = [module.vpc_m1p]
 }
 
-# Associate NSI policy with VPC
+# Model 1 Non-Production Policy - M1NP -> M1NP traffic should NOT be inspected
+resource "google_compute_network_firewall_policy" "nsi_policy_m1np" {
+  project     = local.nethub_project
+  name        = "nsi-policy-m1np"
+  description = "NSI policy for Model 1 Non-Production - M1NP to M1NP traffic bypasses inspection, all other traffic inspected"
+
+  # Rules for traffic interception
+  rule {
+    action      = "apply_security_profile_group"
+    direction   = "EGRESS"
+    priority    = 1000
+    description = "Intercept egress traffic for inspection (excludes M1NP to M1NP)"
+
+    match {
+      dest_ip_ranges = ["0.0.0.0/0"]
+    }
+
+    target_secure_tags {
+      name = "tagValues/${google_tags_tag_value.nsi_enabled.name}"
+    }
+
+    security_profile_group = google_network_security_security_profile_group.paloalto_profile.id
+  }
+
+  depends_on = [module.vpc_m1np]
+}
+
+# Associate NSI policy with M1P VPC
 resource "google_compute_network_firewall_policy_association" "m1p_nsi" {
   project           = local.nethub_project
   name              = "m1p-nsi-association"
   firewall_policy   = google_compute_network_firewall_policy.nsi_policy_m1p.name
   attachment_target = module.vpc_m1p.id
+}
+
+# Associate NSI policy with M1NP VPC
+resource "google_compute_network_firewall_policy_association" "m1np_nsi" {
+  project           = local.nethub_project
+  name              = "m1np-nsi-association"
+  firewall_policy   = google_compute_network_firewall_policy.nsi_policy_m1np.name
+  attachment_target = module.vpc_m1np.id
 }
 */
 
@@ -105,11 +141,12 @@ output "nsi_endpoints_placeholder" {
 #    VM → NSI intercepts at vNIC → Geneve encapsulation → Palo Alto ILB
 #    → Palo Alto inspects → Return to VPC → Route via NCC → Destination
 #
-# 2. NSI Policy Requirements:
-#    - Inter-model traffic: INSPECT (M1P → M1NP, M1P → M3P, etc.)
-#    - Intra-model traffic: SELECTIVE (use Secure Tags for bypass)
-#    - Hybrid traffic: INSPECT (All traffic to On-Prem)
+# 2. NSI Policy Requirements (Updated per manager directive):
+#    - Intra-model traffic: NO INSPECTION (M1P → M1P, M1NP → M1NP bypass inspection)
+#    - Inter-model traffic: INSPECT (M1P → M1NP, M1P → M3P, M1NP → M3P, etc.)
+#    - Hybrid traffic: INSPECT (All traffic to On-Prem via Transit VPC)
 #    - Internet traffic: INSPECT (All egress via Cloud NAT)
+#    - Cross-production traffic: INSPECT (All other traffic flows)
 #
 # 3. Fail-Open Design:
 #    - If Palo Alto fleet is down, traffic fails open for availability

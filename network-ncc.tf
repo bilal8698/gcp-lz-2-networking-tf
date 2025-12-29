@@ -26,7 +26,8 @@ module "ncc_hub" {
   depends_on = [module.network_projects]
 }
 
-# NCC VPC Spokes - Shared VPCs
+# NCC VPC Spokes - Only Model and Transit VPCs
+
 # Model 1 Production Spoke
 module "ncc_spoke_m1p" {
   source = "git::https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-ncc-spoke?ref=v45.0.0"
@@ -112,57 +113,6 @@ module "ncc_spoke_transit" {
   depends_on = [module.ncc_hub, module.vpc_transit]
 }
 
-# Security VPC Spokes
-# Security Data Plane Spoke
-module "ncc_spoke_security_data" {
-  source = "git::https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-ncc-spoke?ref=v45.0.0"
-
-  project_id = local.netsec_project
-  hub        = module.ncc_hub.id
-  name       = "spoke-security-data"
-  description = "NCC Spoke for Security Data Plane VPC (Palo Alto)"
-
-  vpc_config = {
-    network_id = module.vpc_security_data.id
-    excluded_export_ranges = []
-  }
-
-  depends_on = [module.ncc_hub, module.vpc_security_data]
-}
-
-# Security Management Plane Spoke
-module "ncc_spoke_security_mgmt" {
-  source = "git::https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-ncc-spoke?ref=v45.0.0"
-
-  project_id = local.netsec_project
-  hub        = module.ncc_hub.id
-  name       = "spoke-security-mgmt"
-  description = "NCC Spoke for Security Management Plane VPC"
-
-  vpc_config = {
-    network_id = module.vpc_security_mgmt.id
-    excluded_export_ranges = []
-  }
-
-  depends_on = [module.ncc_hub, module.vpc_security_mgmt]
-}
-
-# Shared Services VPC Spoke
-module "ncc_spoke_shared_svcs" {
-  source = "git::https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-ncc-spoke?ref=v45.0.0"
-
-  project_id = local.pvpc_project
-  hub        = module.ncc_hub.id
-  name       = "spoke-shared-svcs"
-  description = "NCC Spoke for Shared Services VPC (PSC)"
-
-  vpc_config = {
-    network_id = module.vpc_shared_svcs.id
-    excluded_export_ranges = []
-  }
-
-  depends_on = [module.ncc_hub, module.vpc_shared_svcs]
-}
-
+# Note: Security VPCs (Data & Management) and Shared Services VPC are NOT spokes.
 # Note: Router Appliance Spokes (for SD-WAN) will be added after Cisco deployment
 # These will be created in a separate file: network-router-appliances.tf
