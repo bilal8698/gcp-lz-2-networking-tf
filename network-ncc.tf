@@ -19,7 +19,7 @@
 module "ncc_hub" {
   source = "git::https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-ncc?ref=v45.0.0"
 
-  project_id = local.nethub_project
+  project_id = local.ncchub_project
   name       = "hub-global-ncc-hub"
   description = "Global NCC Hub for Carrier network with Mesh topology"
 
@@ -32,7 +32,7 @@ module "ncc_hub" {
 module "ncc_spoke_m1p" {
   source = "git::https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-ncc-spoke?ref=v45.0.0"
 
-  project_id = local.nethub_project
+  project_id = local.m1p_host_project
   hub        = module.ncc_hub.id
   name       = "spoke-m1p"
   description = "NCC Spoke for Model 1 Production VPC"
@@ -49,7 +49,7 @@ module "ncc_spoke_m1p" {
 module "ncc_spoke_m1np" {
   source = "git::https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-ncc-spoke?ref=v45.0.0"
 
-  project_id = local.nethub_project
+  project_id = local.m1np_host_project
   hub        = module.ncc_hub.id
   name       = "spoke-m1np"
   description = "NCC Spoke for Model 1 Non-Production VPC"
@@ -66,7 +66,7 @@ module "ncc_spoke_m1np" {
 module "ncc_spoke_m3p" {
   source = "git::https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-ncc-spoke?ref=v45.0.0"
 
-  project_id = local.nethub_project
+  project_id = local.m3p_host_project
   hub        = module.ncc_hub.id
   name       = "spoke-m3p"
   description = "NCC Spoke for Model 3 Production VPC"
@@ -83,7 +83,7 @@ module "ncc_spoke_m3p" {
 module "ncc_spoke_m3np" {
   source = "git::https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-ncc-spoke?ref=v45.0.0"
 
-  project_id = local.nethub_project
+  project_id = local.m3np_host_project
   hub        = module.ncc_hub.id
   name       = "spoke-m3np"
   description = "NCC Spoke for Model 3 Non-Production VPC"
@@ -96,23 +96,37 @@ module "ncc_spoke_m3np" {
   depends_on = [module.ncc_hub, module.vpc_m3np]
 }
 
-# Transit VPC Spoke
-module "ncc_spoke_transit" {
-  source = "git::https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-ncc-spoke?ref=v45.0.0"
+# Router Appliance Spoke (Cisco SD-WAN with Cloud Router)
+# This spoke connects Router Appliances to the NCC Hub for hybrid connectivity
+# Architecture: Router Appliance -> Cloud Router -> SD-WAN
+# The Transit VPC is part of the Router Appliance infrastructure, not a separate spoke
+
+module "ncc_spoke_router_appliance" {
+  source = "git::https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-ncc-spoke-ra?ref=v45.0.0"
 
   project_id = local.transit_project
   hub        = module.ncc_hub.id
-  name       = "spoke-transit"
-  description = "NCC Spoke for Transit VPC (SD-WAN, Blue Cat DNS)"
+  name       = "spoke-router-appliance"
+  description = "NCC Spoke for Router Appliances (Cisco SD-WAN) with Cloud Router"
 
-  vpc_config = {
-    network_id = module.vpc_transit.id
-    excluded_export_ranges = []
-  }
+  # Router Appliances will be configured separately in network-router-appliances.tf
+  # This module creates the spoke registration in NCC
+  # Region-specific RA instances will be added via router_appliances parameter
+  
+  region = "us-central1" # Primary region for global spoke
+  
+  # Router appliances will be added after Cisco VM deployment
+  # Example structure (to be populated):
+  # router_appliances = {
+  #   "us-central1-ra1" = {
+  #     internal_ip = "10.xxx.x.x"
+  #     vm_self_link = "projects/.../zones/.../instances/..."
+  #   }
+  # }
 
   depends_on = [module.ncc_hub, module.vpc_transit]
 }
 
 # Note: Security VPCs (Data & Management) and Shared Services VPC are NOT spokes.
-# Note: Router Appliance Spokes (for SD-WAN) will be added after Cisco deployment
-# These will be created in a separate file: network-router-appliances.tf
+# Note: Router Appliance VM instances (Cisco SD-WAN) will be deployed separately
+# Note: Cloud Routers for BGP peering will be created in network-cloud-routers.tf

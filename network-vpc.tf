@@ -19,7 +19,7 @@
 module "vpc_m1p" {
   source = "git::https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vpc?ref=v45.0.0"
 
-  project_id = local.nethub_project
+  project_id = local.m1p_host_project
   name       = local.shared_vpcs.m1p.name
   description = local.shared_vpcs.m1p.description
 
@@ -47,7 +47,7 @@ module "vpc_m1p" {
 module "vpc_m1np" {
   source = "git::https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vpc?ref=v45.0.0"
 
-  project_id = local.nethub_project
+  project_id = local.m1np_host_project
   name       = local.shared_vpcs.m1np.name
   description = local.shared_vpcs.m1np.description
 
@@ -69,7 +69,7 @@ module "vpc_m1np" {
 module "vpc_m3p" {
   source = "git::https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vpc?ref=v45.0.0"
 
-  project_id = local.nethub_project
+  project_id = local.m3p_host_project
   name       = local.shared_vpcs.m3p.name
   description = local.shared_vpcs.m3p.description
 
@@ -91,7 +91,7 @@ module "vpc_m3p" {
 module "vpc_m3np" {
   source = "git::https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vpc?ref=v45.0.0"
 
-  project_id = local.nethub_project
+  project_id = local.m3np_host_project
   name       = local.shared_vpcs.m3np.name
   description = local.shared_vpcs.m3np.description
 

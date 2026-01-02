@@ -87,7 +87,11 @@ locals {
   network_projects = { for proj in local.all_network_projects : proj.key => proj }
 
   # Key project references
-  nethub_project       = local.network_projects["nethub-prd"].name
+  ncchub_project       = local.network_projects["ncchub-prd"].name
+  m1p_host_project     = local.network_projects["m1p-host-prd"].name
+  m1np_host_project    = local.network_projects["m1np-host-prd"].name
+  m3p_host_project     = local.network_projects["m3p-host-prd"].name
+  m3np_host_project    = local.network_projects["m3np-host-prd"].name
   transit_project      = local.network_projects["transit-prd"].name
   netsec_project       = local.network_projects["netsec-prd"].name
   pvpc_project         = local.network_projects["pvpc-prd"].name
@@ -102,27 +106,27 @@ locals {
     "asia-east2"       = { location = "asia-east2", zone_a = "asia-east2-a", zone_b = "asia-east2-b" }
   }
 
-  # VPC configurations
+  # VPC configurations - Each model has its own project and VPC
   shared_vpcs = {
     m1p = {
       name        = "global-host-M1P-vpc"
       description = "Shared VPC for Model 1 Production (Internal/Private)"
-      project_id  = local.nethub_project
+      project_id  = local.m1p_host_project
     }
     m1np = {
       name        = "global-host-M1NP-vpc"
       description = "Shared VPC for Model 1 Non-Production (Internal/Private)"
-      project_id  = local.nethub_project
+      project_id  = local.m1np_host_project
     }
     m3p = {
       name        = "global-host-M3P-vpc"
       description = "Shared VPC for Model 3 Production (DMZ/Public)"
-      project_id  = local.nethub_project
+      project_id  = local.m3p_host_project
     }
     m3np = {
       name        = "global-host-M3NP-vpc"
       description = "Shared VPC for Model 3 Non-Production (DMZ/Public)"
-      project_id  = local.nethub_project
+      project_id  = local.m3np_host_project
     }
   }
 
@@ -157,16 +161,16 @@ locals {
   # CIDR allocations (from TDD Table 4.2.3a)
   cidr_allocations = {
     "us-east4" = {
-      m1p  = "10.150.0.0/16"
-      m1np = "10.151.0.0/16"
-      m3p  = "10.152.0.0/16"
-      m3np = "10.153.0.0/16"
+      m1p  = "10.160.0.0/16"
+      m1np = "10.161.0.0/16"
+      m3p  = "10.162.0.0/16"
+      m3np = "10.163.0.0/16"
     }
     "us-central1" = {
-      m1p  = "10.100.0.0/16"
-      m1np = "10.101.0.0/16"
-      m3p  = "10.102.0.0/16"
-      m3np = "10.103.0.0/16"
+      m1p  = "10.164.0.0/16"
+      m1np = "10.165.0.0/16"
+      m3p  = "10.166.0.0/16"
+      m3np = "10.167.0.0/16"
     }
     "europe-west3" = {
       m1p  = "10.172.0.0/16"

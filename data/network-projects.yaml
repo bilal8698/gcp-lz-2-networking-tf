@@ -17,11 +17,43 @@
 # Following the same structure as service projects
 
 network_projects:
-  # NCC Hub & Shared VPCs Project
-  nethub:
+  # NCC Hub Project (only contains NCC Hub resource)
+  ncchub:
     business_segment: "mgmt"
     team: "network-team"
-    description: "Network Connectivity Center Hub and Shared VPCs"
+    description: "Network Connectivity Center Hub"
+    folder: "networking"
+    deletion_policy: "PREVENT"
+    services:
+      - serviceusage.googleapis.com
+      - networkconnectivity.googleapis.com
+      - compute.googleapis.com
+      - logging.googleapis.com
+      - cloudresourcemanager.googleapis.com
+      - iam.googleapis.com
+      - storage.googleapis.com
+      - monitoring.googleapis.com
+    labels:
+      costcenter: "109741"
+      ixappid: "na"
+      accountowner: "ecsarchitecture_at_carrier_com"
+      businesssegment: "whq"
+      team_email: "ecsarchitecture_at_carrier_com"
+      classification: "confidential"
+      owner: "network-team"
+      environment: "prd"
+      application: "network-ncc-hub"
+      leanix_app_id: "app-network-ncc-hub"
+    envs:
+      prd:
+        ad_group_number: "40036"
+        admin_principal: "group:cloud-gcp-global-ecsadmin@gws.carrier.com"
+
+  # Model 1 Production Host Project
+  m1p-host:
+    business_segment: "mgmt"
+    team: "network-team"
+    description: "Model 1 Production Shared VPC Host"
     folder: "networking"
     deletion_policy: "PREVENT"
     services:
@@ -30,14 +62,12 @@ network_projects:
       - networkmanagement.googleapis.com
       - networksecurity.googleapis.com
       - networkconnectivity.googleapis.com
-      - cloudkms.googleapis.com
       - compute.googleapis.com
       - logging.googleapis.com
       - cloudresourcemanager.googleapis.com
       - iam.googleapis.com
       - storage.googleapis.com
       - monitoring.googleapis.com
-      - accesscontextmanager.googleapis.com
       - dns.googleapis.com
     labels:
       costcenter: "109741"
@@ -48,15 +78,126 @@ network_projects:
       classification: "confidential"
       owner: "network-team"
       environment: "prd"
-      application: "network-hub"
-      leanix_app_id: "app-network-hub"
+      application: "model1-prod"
+      leanix_app_id: "app-m1p-host"
     envs:
       prd:
-        ad_group_number: "40036"
+        ad_group_number: "40037"
         admin_principal: "group:cloud-gcp-global-ecsadmin@gws.carrier.com"
         shared_vpc_host: true
 
-  # Network Transit Project (SD-WAN, Cloud Router, Blue Cat DNS)
+  # Model 1 Non-Production Host Project
+  m1np-host:
+    business_segment: "mgmt"
+    team: "network-team"
+    description: "Model 1 Non-Production Shared VPC Host"
+    folder: "networking"
+    deletion_policy: "PREVENT"
+    services:
+      - serviceusage.googleapis.com
+      - servicenetworking.googleapis.com
+      - networkmanagement.googleapis.com
+      - networksecurity.googleapis.com
+      - networkconnectivity.googleapis.com
+      - compute.googleapis.com
+      - logging.googleapis.com
+      - cloudresourcemanager.googleapis.com
+      - iam.googleapis.com
+      - storage.googleapis.com
+      - monitoring.googleapis.com
+      - dns.googleapis.com
+    labels:
+      costcenter: "109741"
+      ixappid: "na"
+      accountowner: "ecsarchitecture_at_carrier_com"
+      businesssegment: "whq"
+      team_email: "ecsarchitecture_at_carrier_com"
+      classification: "confidential"
+      owner: "network-team"
+      environment: "np"
+      application: "model1-nonprod"
+      leanix_app_id: "app-m1np-host"
+    envs:
+      prd:
+        ad_group_number: "40041"
+        admin_principal: "group:cloud-gcp-global-ecsadmin@gws.carrier.com"
+        shared_vpc_host: true
+
+  # Model 3 Production Host Project
+  m3p-host:
+    business_segment: "mgmt"
+    team: "network-team"
+    description: "Model 3 Production Shared VPC Host (DMZ)"
+    folder: "networking"
+    deletion_policy: "PREVENT"
+    services:
+      - serviceusage.googleapis.com
+      - servicenetworking.googleapis.com
+      - networkmanagement.googleapis.com
+      - networksecurity.googleapis.com
+      - networkconnectivity.googleapis.com
+      - compute.googleapis.com
+      - logging.googleapis.com
+      - cloudresourcemanager.googleapis.com
+      - iam.googleapis.com
+      - storage.googleapis.com
+      - monitoring.googleapis.com
+      - dns.googleapis.com
+    labels:
+      costcenter: "109741"
+      ixappid: "na"
+      accountowner: "ecsarchitecture_at_carrier_com"
+      businesssegment: "whq"
+      team_email: "ecsarchitecture_at_carrier_com"
+      classification: "confidential"
+      owner: "network-team"
+      environment: "prd"
+      application: "model3-prod"
+      leanix_app_id: "app-m3p-host"
+    envs:
+      prd:
+        ad_group_number: "40042"
+        admin_principal: "group:cloud-gcp-global-ecsadmin@gws.carrier.com"
+        shared_vpc_host: true
+
+  # Model 3 Non-Production Host Project
+  m3np-host:
+    business_segment: "mgmt"
+    team: "network-team"
+    description: "Model 3 Non-Production Shared VPC Host (DMZ)"
+    folder: "networking"
+    deletion_policy: "PREVENT"
+    services:
+      - serviceusage.googleapis.com
+      - servicenetworking.googleapis.com
+      - networkmanagement.googleapis.com
+      - networksecurity.googleapis.com
+      - networkconnectivity.googleapis.com
+      - compute.googleapis.com
+      - logging.googleapis.com
+      - cloudresourcemanager.googleapis.com
+      - iam.googleapis.com
+      - storage.googleapis.com
+      - monitoring.googleapis.com
+      - dns.googleapis.com
+    labels:
+      costcenter: "109741"
+      ixappid: "na"
+      accountowner: "ecsarchitecture_at_carrier_com"
+      businesssegment: "whq"
+      team_email: "ecsarchitecture_at_carrier_com"
+      classification: "confidential"
+      owner: "network-team"
+      environment: "np"
+      application: "model3-nonprod"
+      leanix_app_id: "app-m3np-host"
+    envs:
+      prd:
+        ad_group_number: "40043"
+        admin_principal: "group:cloud-gcp-global-ecsadmin@gws.carrier.com"
+        shared_vpc_host: true
+
+  # Network Transit Project (SD-WAN Router Appliances, Cloud Router, Blue Cat DNS)
   transit:
     business_segment: "mgmt"
     team: "network-team"
