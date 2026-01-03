@@ -1,0 +1,77 @@
+Monday PART 1 to add in the Slide in requirements Section 
+
+Carrier IaC Requirements (Ultra-Short Version)
+
+⦁	Use Carrier Terraform Scaffold with enforced lint/security checks.
+
+⦁	CI/CD via GitHub Enterprise with mandatory scans + TF Plan in PR.
+
+⦁	Implement automated subnet vending using project metadata into Shared VPCs.
+
+⦁	Apply mandatory tags (cost_center, owner, application, leanIX_app_id) on all resources.
+
+⦁	Build NCC-based network automation aligned with CloudWAN architecture.
+
+⦁	Enable network logging (Flow, DNS, LB) through IaC.
+
+⦁	Follow standard repo/state structure with GCS backend.
+
+⦁	Perform all testing safely in Model-1 / Model-3 folders.
+
+
+
+
+PART 2 Solution Part Slide 2 Solution Section
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+1. Standardized Development & Governance
+
+Adopt Carrier Terraform Scaffold for consistent development environment
+
+Enforce all mandatory linting, validation, and security scans
+
+Use GitHub Enterprise CI/CD with Terraform Plan in PR and main-branch deployments
+
+2. Modular & Scalable IaC Architecture
+
+Implement multi-repo Terraform structure (RM, Networking, NCC, Subnet Vending, Logging)
+
+Use GCS backend for secure, controlled remote state storage
+
+Limit state files for cleaner lifecycle management
+
+3. Automated Subnet Vending
+
+Build a metadata-driven subnet vending module
+
+Automatically read project metadata & allocate subnets
+
+Deploy subnets into Shared VPC folders with no manual steps
+
+4. Compliance & Tag Enforcement
+
+Embed mandatory tags (cost_center, owner, application, leanIX_app_id) into Terraform modules
+
+Apply tags dynamically during subnet vending based on project metadata
+
+5. Network Automation & Logging
+
+Automate NCC Hub-and-Spoke deployment aligned with CloudWAN
+
+Enable VPC Flow Logs, DNS Logs, and LB Logs through IaC
+
+Integrate with Carrier’s central logging pipeline
+
+6. Safe Testing & Validation
+
+Execute all initial testing within Model-1 and Model-3 folders
+
+Ensure zero impact to existing production workloads
+
+
+
+
+
+
+
+
+

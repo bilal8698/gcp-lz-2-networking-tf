@@ -1,0 +1,77 @@
+Overall Information  Carrier Project Understanding
+
+
+* The products that we are going to create in GCP -
+-NCC
+-NSI
+-DNS & IPAM
+-Hub & Spoke Architecture 
+
+* NCC- Implementation of a global mesh topology for transitivity between SD-WAN and Workload VPC's. With shared host project & transit project for communication, vending subnet and ADHOC subnet creation.
+
+In the Networking project the project is (prj-prd-gcp-40036-mgmt-nethub) will have 4 shared VPC's in this 
+i.e M1P, M1NP , M3P and M3NP 
+
+Model ! is internal not exposed to internet.
+Model 3 is one way like DMZ 
+
+Will have the shared host project with all subnets inside for prod and non-prod 
+M1--->prod, non-prod
+M3--->prod, non-prod 
+
+will have another spoke called transit spoke .
+In the transit spoke it will connect to the SD-WAN and RA(Router Appliances) So we will only create the transit VC and Cloud Router.
+
+In the GCP project we have a HUB and will have the 4 shared VPC's.
+Whatever we have like M1 & M3will become the service projects and connect to those subnets which is there in the shared VPC's.
+In the Host Project we have the 4 VPC's
+
+In each shared VPC's we would have 6 subnets created in the 6 regions that are -
+-USE-1
+-USC-1
+-EUW-1 
+-EUE-1 
+-APW-1
+-APE-1
+
+Shared VPC are
+1.Shared VPC spoke M1P
+2.Shared VPC spoke M1NP
+3.Shared VPC spoke M3P
+4.Shared VPC spoke M3NP
+
+These will be the host project that would be (prj-prd-gcpp-40036-mgmt-nethub)
+We will have total 5 spokes that are 
+1.Spoke1 -M1P
+2.Spoke2 -M1NP
+3.Spoke3 -M3P
+4.Spoke4 -M3NP
+5.Spoke5 - transit spoke(connected to global-transit-vpc)
+
+and spoke1 - spoke4 will be connected to the NCC HUB (hub-global-ncc-hub)
+
+Projects - global-ncc-hub with resource role NCC hub & Shared-services with resource role connectivity spoke  will be the part of one 
+
+projects- Network-transit with resource role connectivity spoke with VPC name global-transit VPC & network-security with resource role security data security management with VPC name {global-security-vpc-data(for palo alto)} and {global-security-vpc-mgmt(for palo stratacom)} where global-security-vpc-data hosts palo alto VM series & ILB's & global-securuty-vpc-mgmt will hosts stratacom interfaces and FW management.
+
+And the shared-host-vpc-pvpc with vpc name {global-shared-svcs-vpc(for blue cat DNS)} which host for private service connect endpoints.
+
+If the traffic is going from M1P to M1P no inspection needed but if the traffic is going from the M1P to M1NP the inspection is needed same applies for all models.
+from the blue cat DNS the IP's would be assigned so that no duplication would be happened.
+Blue Cat would be created by Carrier we would only be connecting network peering.
+
+The logic would be is whenever a customer will deploy a VPC they will deploy a VPC they will vend a subnet also with that.
+BDDS is basically a DNS server that Carrier would deploy on the shared service and if you create a VPC you need to have a CIDR range or subnet so that entire process needs to be automated through terraform and GitHub.
+When we create or setup those infrastructure i.e those for Bluecat through terraform you need a AMI name that will be exposed so that to avoid that APIGEE is used.
+ To create the resource also that VPC or gateway you need to connect to APIGEE that is reason we have APIGEE here.
+
+To avoid that Carrier needs APIGEE call rather than going through terraform.
+
+So Carrier want to setup a product catalog they want something like a vending machine they want to vend the things like for example they want to vend a project with subnet so they need the Automation for this.
+
+So basically Carrier wants to build self-service portal where as being a Carrier Employee I want to have a VPC in GCP but I want to migrate my  workload So, I will go to the shared service portal  and I'll choose project it will be prod, non-prod or whatever the model will be the subnet I'll click adn in the bacend the deployment will happen at the end of the day or after deployment I may get the username,password or project code and everthing something like that
+
+
+We have to work on the repo- gcp-lz-2-networking-tf 
+
+the existing landing zone repo is gcp-lz-4-services-tf(for services) in the same way they are expecting us to set it up for networking.
