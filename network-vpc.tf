@@ -14,31 +14,28 @@
 
 # Shared VPCs for Model 1 and Model 3 Environments
 # Using Cloud Foundation Fabric net-vpc module
+# Configuration driven by data/shared-vpc-config.yaml
 
 # Model 1 Production VPC (Internal/Private)
 module "vpc_m1p" {
   source = "git::https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vpc?ref=v45.0.0"
 
   project_id = local.m1p_host_project
-  name       = local.shared_vpcs.m1p.name
-  description = local.shared_vpcs.m1p.description
+  name       = local.shared_vpc_config_raw.shared_vpcs.m1p.name
+  description = local.shared_vpc_config_raw.shared_vpcs.m1p.description
 
   # Auto-create subnets disabled - we'll create them explicitly
   auto_create_subnetworks = false
 
   # Shared VPC host configuration
-  shared_vpc_host = true
+  shared_vpc_host = local.shared_vpc_config_raw.shared_vpcs.m1p.shared_vpc_host
 
   # VPC-level configurations
-  mtu                    = 1460
-  enable_ula_internal_ipv6 = false
+  mtu                    = local.shared_vpc_config_raw.shared_vpcs.m1p.mtu
+  enable_ula_internal_ipv6 = local.shared_vpc_config_raw.shared_vpcs.m1p.enable_ula_internal_ipv6
 
   # DNS configuration
-  dns_policy = {
-    inbound  = false
-    logging  = true
-    outbound = null
-  }
+  dns_policy = local.shared_vpc_config_raw.shared_vpcs.m1p.dns_policy
 
   depends_on = [module.network_projects]
 }
@@ -48,19 +45,15 @@ module "vpc_m1np" {
   source = "git::https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vpc?ref=v45.0.0"
 
   project_id = local.m1np_host_project
-  name       = local.shared_vpcs.m1np.name
-  description = local.shared_vpcs.m1np.description
+  name       = local.shared_vpc_config_raw.shared_vpcs.m1np.name
+  description = local.shared_vpc_config_raw.shared_vpcs.m1np.description
 
   auto_create_subnetworks = false
-  shared_vpc_host = true
-  mtu = 1460
-  enable_ula_internal_ipv6 = false
+  shared_vpc_host = local.shared_vpc_config_raw.shared_vpcs.m1np.shared_vpc_host
+  mtu = local.shared_vpc_config_raw.shared_vpcs.m1np.mtu
+  enable_ula_internal_ipv6 = local.shared_vpc_config_raw.shared_vpcs.m1np.enable_ula_internal_ipv6
 
-  dns_policy = {
-    inbound  = false
-    logging  = true
-    outbound = null
-  }
+  dns_policy = local.shared_vpc_config_raw.shared_vpcs.m1np.dns_policy
 
   depends_on = [module.network_projects]
 }
@@ -70,19 +63,15 @@ module "vpc_m3p" {
   source = "git::https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vpc?ref=v45.0.0"
 
   project_id = local.m3p_host_project
-  name       = local.shared_vpcs.m3p.name
-  description = local.shared_vpcs.m3p.description
+  name       = local.shared_vpc_config_raw.shared_vpcs.m3p.name
+  description = local.shared_vpc_config_raw.shared_vpcs.m3p.description
 
   auto_create_subnetworks = false
-  shared_vpc_host = true
-  mtu = 1460
-  enable_ula_internal_ipv6 = false
+  shared_vpc_host = local.shared_vpc_config_raw.shared_vpcs.m3p.shared_vpc_host
+  mtu = local.shared_vpc_config_raw.shared_vpcs.m3p.mtu
+  enable_ula_internal_ipv6 = local.shared_vpc_config_raw.shared_vpcs.m3p.enable_ula_internal_ipv6
 
-  dns_policy = {
-    inbound  = false
-    logging  = true
-    outbound = null
-  }
+  dns_policy = local.shared_vpc_config_raw.shared_vpcs.m3p.dns_policy
 
   depends_on = [module.network_projects]
 }
@@ -92,19 +81,15 @@ module "vpc_m3np" {
   source = "git::https://github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/net-vpc?ref=v45.0.0"
 
   project_id = local.m3np_host_project
-  name       = local.shared_vpcs.m3np.name
-  description = local.shared_vpcs.m3np.description
+  name       = local.shared_vpc_config_raw.shared_vpcs.m3np.name
+  description = local.shared_vpc_config_raw.shared_vpcs.m3np.description
 
   auto_create_subnetworks = false
-  shared_vpc_host = true
-  mtu = 1460
-  enable_ula_internal_ipv6 = false
+  shared_vpc_host = local.shared_vpc_config_raw.shared_vpcs.m3np.shared_vpc_host
+  mtu = local.shared_vpc_config_raw.shared_vpcs.m3np.mtu
+  enable_ula_internal_ipv6 = local.shared_vpc_config_raw.shared_vpcs.m3np.enable_ula_internal_ipv6
 
-  dns_policy = {
-    inbound  = false
-    logging  = true
-    outbound = null
-  }
+  dns_policy = local.shared_vpc_config_raw.shared_vpcs.m3np.dns_policy
 
   depends_on = [module.network_projects]
 }

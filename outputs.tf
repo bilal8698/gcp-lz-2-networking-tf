@@ -36,25 +36,25 @@ locals {
       m1p = {
         id             = module.vpc_m1p.id
         name           = module.vpc_m1p.name
-        project_id     = local.nethub_project
+        project_id     = local.m1p_host_project
         self_link      = module.vpc_m1p.self_link
       }
       m1np = {
         id             = module.vpc_m1np.id
         name           = module.vpc_m1np.name
-        project_id     = local.nethub_project
+        project_id     = local.m1np_host_project
         self_link      = module.vpc_m1np.self_link
       }
       m3p = {
         id             = module.vpc_m3p.id
         name           = module.vpc_m3p.name
-        project_id     = local.nethub_project
+        project_id     = local.m3p_host_project
         self_link      = module.vpc_m3p.self_link
       }
       m3np = {
         id             = module.vpc_m3np.id
         name           = module.vpc_m3np.name
-        project_id     = local.nethub_project
+        project_id     = local.m3np_host_project
         self_link      = module.vpc_m3np.self_link
       }
     }
@@ -94,14 +94,11 @@ locals {
       id   = module.ncc_hub.id
       name = module.ncc_hub.name
       spokes = {
-        m1p          = module.ncc_spoke_m1p.id
-        m1np         = module.ncc_spoke_m1np.id
-        m3p          = module.ncc_spoke_m3p.id
-        m3np         = module.ncc_spoke_m3np.id
-        transit      = module.ncc_spoke_transit.id
-        security_data = module.ncc_spoke_security_data.id
-        security_mgmt = module.ncc_spoke_security_mgmt.id
-        shared_svcs  = module.ncc_spoke_shared_svcs.id
+        m1p                 = module.ncc_spoke_m1p.id
+        m1np                = module.ncc_spoke_m1np.id
+        m3p                 = module.ncc_spoke_m3p.id
+        m3np                = module.ncc_spoke_m3np.id
+        router_appliance    = module.ncc_spoke_router_appliance.id
       }
     }
 
@@ -113,6 +110,68 @@ locals {
         region        = v.region
         ip_cidr_range = v.ip_cidr_range
         vpc_id        = v.network
+        project_id    = v.project
+      }
+    }
+
+    # Infrastructure subnets
+    infrastructure_subnets = {
+      for k, v in google_compute_subnetwork.infrastructure_subnets : k => {
+        id            = v.id
+        name          = v.name
+        region        = v.region
+        ip_cidr_range = v.ip_cidr_range
+        vpc_id        = v.network
+        project_id    = v.project
+      }
+    }
+
+    # Cloud Routers
+    cloud_routers = {
+      transit = {
+        for k, v in google_compute_router.transit_routers : k => {
+          id         = v.id
+          name       = v.name
+          region     = v.region
+          self_link  = v.self_link
+        }
+      }
+      model = {
+        for k, v in google_compute_router.model_routers : k => {
+          id         = v.id
+          name       = v.name
+          region     = v.region
+          self_link  = v.self_link
+        }
+      }
+    }
+
+    # HA VPN Gateways
+    ha_vpn_gateways = {
+      for k, v in google_compute_ha_vpn_gateway.transit_vpn_gateways : k => {
+        id        = v.id
+        name      = v.name
+        region    = v.region
+        self_link = v.self_link
+      }
+    }
+
+    # Cloud NAT Gateways
+    cloud_nat_gateways = {
+      for k, v in google_compute_router_nat.model_nat_gateways : k => {
+        id     = v.id
+        name   = v.name
+        region = v.region
+      }
+    }
+
+    # Interconnect VLAN Attachments
+    interconnect_attachments = {
+      for k, v in google_compute_interconnect_attachment.vlan_attachments : k => {
+        id        = v.id
+        name      = v.name
+        region    = v.region
+        self_link = v.self_link
       }
     }
 
@@ -128,9 +187,19 @@ output "networking_outputs" {
 }
 
 # Individual outputs for convenience
-output "nethub_project_id" {
-  description = "Network Hub project ID"
-  value       = local.nethub_project
+output "ncchub_project_id" {
+  description = "NCC Hub project ID"
+  value       = local.ncchub_project
+}
+
+output "model_host_projects" {
+  description = "Model host project IDs"
+  value = {
+    m1p  = local.m1p_host_project
+    m1np = local.m1np_host_project
+    m3p  = local.m3p_host_project
+    m3np = local.m3np_host_project
+  }
 }
 
 output "shared_vpcs" {
