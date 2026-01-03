@@ -27,9 +27,13 @@ variable "factories_config" {
   type = object({
     network_projects = optional(string, "data/network-projects.yaml")
     subnet_vending   = optional(string, "data/network-subnets.yaml")
+    shared_vpc       = optional(string, "data/shared-vpc-config.yaml")
+    ncc_config       = optional(string, "data/ncc-config.yaml")
   })
   default = {
     network_projects = "data/network-projects.yaml"
     subnet_vending   = "data/network-subnets.yaml"
+    shared_vpc       = "data/shared-vpc-config.yaml"
+    ncc_config       = "data/ncc-config.yaml"
   }
 }

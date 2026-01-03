@@ -1,0 +1,104 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Shared VPC Configuration for Model VPCs
+# This file configures the shared VPC settings following Cloud Foundation Fabric patterns
+
+shared_vpcs:
+  m1p:
+    name: "global-host-M1P-vpc"
+    description: "Shared VPC for Model 1 Production (Internal/Private)"
+    project_key: "m1p-host-prd"
+    mtu: 1460
+    enable_ula_internal_ipv6: false
+    shared_vpc_host: true
+    
+    # DNS configuration
+    dns_policy:
+      inbound: false
+      logging: true
+      outbound: null
+    
+    # NCC Spoke configuration
+    ncc_spoke:
+      enabled: true
+      name: "spoke-m1p"
+      description: "NCC Spoke for Model 1 Production VPC"
+      excluded_export_ranges: []
+    
+    # Service projects (to be attached)
+    service_projects: []
+
+  m1np:
+    name: "global-host-M1NP-vpc"
+    description: "Shared VPC for Model 1 Non-Production (Internal/Private)"
+    project_key: "m1np-host-prd"
+    mtu: 1460
+    enable_ula_internal_ipv6: false
+    shared_vpc_host: true
+    
+    dns_policy:
+      inbound: false
+      logging: true
+      outbound: null
+    
+    ncc_spoke:
+      enabled: true
+      name: "spoke-m1np"
+      description: "NCC Spoke for Model 1 Non-Production VPC"
+      excluded_export_ranges: []
+    
+    service_projects: []
+
+  m3p:
+    name: "global-host-M3P-vpc"
+    description: "Shared VPC for Model 3 Production (DMZ/Public)"
+    project_key: "m3p-host-prd"
+    mtu: 1460
+    enable_ula_internal_ipv6: false
+    shared_vpc_host: true
+    
+    dns_policy:
+      inbound: false
+      logging: true
+      outbound: null
+    
+    ncc_spoke:
+      enabled: true
+      name: "spoke-m3p"
+      description: "NCC Spoke for Model 3 Production VPC"
+      excluded_export_ranges: []
+    
+    service_projects: []
+
+  m3np:
+    name: "global-host-M3NP-vpc"
+    description: "Shared VPC for Model 3 Non-Production (DMZ/Public)"
+    project_key: "m3np-host-prd"
+    mtu: 1460
+    enable_ula_internal_ipv6: false
+    shared_vpc_host: true
+    
+    dns_policy:
+      inbound: false
+      logging: true
+      outbound: null
+    
+    ncc_spoke:
+      enabled: true
+      name: "spoke-m3np"
+      description: "NCC Spoke for Model 3 Non-Production VPC"
+      excluded_export_ranges: []
+    
+    service_projects: []

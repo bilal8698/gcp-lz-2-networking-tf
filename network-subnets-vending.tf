@@ -83,7 +83,7 @@ locals {
 resource "google_compute_subnetwork" "vended_subnets" {
   for_each = local.vended_subnets
 
-  project       = local.nethub_project
+  project       = local.shared_vpcs[each.value.vpc_key].project_id
   name          = each.value.name
   region        = each.value.region
   network       = local.vpc_modules[each.value.vpc_key].id

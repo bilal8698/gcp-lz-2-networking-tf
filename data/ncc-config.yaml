@@ -1,0 +1,60 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Network Connectivity Center (NCC) Configuration
+
+ncc_hub:
+  name: "hub-global-ncc-hub"
+  description: "Global NCC Hub for Carrier network with Mesh topology"
+  project_key: "ncchub-prd"
+
+# VPC Spokes - Shared VPCs
+vpc_spokes:
+  - name: "spoke-m1p"
+    description: "NCC Spoke for Model 1 Production VPC"
+    project_key: "m1p-host-prd"
+    vpc_key: "m1p"
+    excluded_export_ranges: []
+  
+  - name: "spoke-m1np"
+    description: "NCC Spoke for Model 1 Non-Production VPC"
+    project_key: "m1np-host-prd"
+    vpc_key: "m1np"
+    excluded_export_ranges: []
+  
+  - name: "spoke-m3p"
+    description: "NCC Spoke for Model 3 Production VPC"
+    project_key: "m3p-host-prd"
+    vpc_key: "m3p"
+    excluded_export_ranges: []
+  
+  - name: "spoke-m3np"
+    description: "NCC Spoke for Model 3 Non-Production VPC"
+    project_key: "m3np-host-prd"
+    vpc_key: "m3np"
+    excluded_export_ranges: []
+
+# Router Appliance Spoke - Transit VPC
+router_appliance_spoke:
+  name: "spoke-router-appliance"
+  description: "NCC Spoke for Router Appliances (Cisco SD-WAN) with Cloud Router"
+  project_key: "transit-prd"
+  region: "us-central1"
+  
+  # Router appliances will be added after Cisco VM deployment
+  # Example structure (to be populated):
+  # router_appliances:
+  #   us-central1-ra1:
+  #     internal_ip: "10.154.1.10"
+  #     vm_self_link: "projects/.../zones/.../instances/..."

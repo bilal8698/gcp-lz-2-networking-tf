@@ -44,6 +44,18 @@ locals {
     {}
   )
 
+  # Shared VPC configuration from YAML
+  shared_vpc_config_raw = try(
+    yamldecode(file("${path.module}/${var.factories_config.shared_vpc}")),
+    {}
+  )
+
+  # NCC configuration from YAML
+  ncc_config_raw = try(
+    yamldecode(file("${path.module}/${var.factories_config.ncc_config}")),
+    {}
+  )
+
   # Generate all network projects from network-projects.yaml
   all_network_projects = flatten([
     for project_name, project_config in local.network_projects_raw.network_projects : [
