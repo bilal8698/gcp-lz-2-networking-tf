@@ -104,9 +104,6 @@ locals {
   m1np_host_project    = local.network_projects["m1np-host-prd"].name
   m3p_host_project     = local.network_projects["m3p-host-prd"].name
   m3np_host_project    = local.network_projects["m3np-host-prd"].name
-  transit_project      = local.network_projects["transit-prd"].name
-  netsec_project       = local.network_projects["netsec-prd"].name
-  pvpc_project         = local.network_projects["pvpc-prd"].name
 
   # Regions configuration (from TDD/LLD)
   regions = {
@@ -142,24 +139,17 @@ locals {
     }
   }
 
-  # Transit VPC configuration
-  transit_vpc = {
-    name        = "global-transit-vpc"
-    description = "Transit VPC for SD-WAN Router Appliances and Blue Cat DNS"
-    project_id  = local.transit_project
-  }
-
   # Security VPCs configuration
   security_vpcs = {
     data = {
       name        = "global-security-vpc-data"
       description = "Security VPC Data Plane for Palo Alto VM-Series"
-      project_id  = local.netsec_project
+      project_id  = local.ncchub_project
     }
     mgmt = {
       name        = "global-security-vpc-mgmt"
       description = "Security VPC Management Plane for Palo Alto Management"
-      project_id  = local.netsec_project
+      project_id  = local.ncchub_project
     }
   }
 
@@ -167,86 +157,16 @@ locals {
   shared_svcs_vpc = {
     name        = "global-shared-svcs-vpc"
     description = "Shared Services VPC for PSC Endpoints"
-    project_id  = local.pvpc_project
+    project_id  = local.ncchub_project
   }
 
-  # CIDR allocations (from TDD Table 4.2.3a)
-  cidr_allocations = {
-    "us-east4" = {
-      m1p  = "10.160.0.0/16"
-      m1np = "10.161.0.0/16"
-      m3p  = "10.162.0.0/16"
-      m3np = "10.163.0.0/16"
-    }
-    "us-central1" = {
-      m1p  = "10.164.0.0/16"
-      m1np = "10.165.0.0/16"
-      m3p  = "10.166.0.0/16"
-      m3np = "10.167.0.0/16"
-    }
-    "europe-west3" = {
-      m1p  = "10.172.0.0/16"
-      m1np = "10.173.0.0/16"
-      m3p  = "10.174.0.0/16"
-      m3np = "10.175.0.0/16"
-    }
-    "europe-west1" = {
-      m1p  = "10.176.0.0/16"
-      m1np = "10.177.0.0/16"
-      m3p  = "10.178.0.0/16"
-      m3np = "10.179.0.0/16"
-    }
-    "asia-southeast1" = {
-      m1p  = "10.184.0.0/16"
-      m1np = "10.185.0.0/16"
-      m3p  = "10.186.0.0/16"
-      m3np = "10.187.0.0/16"
-    }
-    "asia-east2" = {
-      m1p  = "10.188.0.0/16"
-      m1np = "10.189.0.0/16"
-      m3p  = "10.190.0.0/16"
-      m3np = "10.191.0.0/16"
-    }
-  }
-
-  # Infrastructure subnet CIDRs (from TDD/LLD)
-  infra_subnet_cidrs = {
-    "us-east4" = {
-      transit     = "10.154.0.0/24"
-      sec_data    = "10.154.8.0/24"
-      sec_mgmt    = "10.154.16.0/24"
-      shared_svcs = "10.154.32.0/24"
-    }
-    "us-central1" = {
-      transit     = "10.154.1.0/24"
-      sec_data    = "10.154.9.0/24"
-      sec_mgmt    = "10.154.17.0/24"
-      shared_svcs = "10.154.33.0/24"
-    }
-    "europe-west3" = {
-      transit     = "10.154.3.0/24"
-      sec_data    = "10.154.11.0/24"
-      sec_mgmt    = "10.154.19.0/24"
-      shared_svcs = "10.154.35.0/24"
-    }
-    "europe-west1" = {
-      transit     = "10.154.2.0/24"
-      sec_data    = "10.154.10.0/24"
-      sec_mgmt    = "10.154.18.0/24"
-      shared_svcs = "10.154.34.0/24"
-    }
-    "asia-southeast1" = {
-      transit     = "10.154.5.0/24"
-      sec_data    = "10.154.13.0/24"
-      sec_mgmt    = "10.154.21.0/24"
-      shared_svcs = "10.154.37.0/24"
-    }
-    "asia-east2" = {
-      transit     = "10.154.4.0/24"
-      sec_data    = "10.154.12.0/24"
-      sec_mgmt    = "10.154.20.0/24"
-      shared_svcs = "10.154.36.0/24"
-    }
-  }
+  # CIDR allocations moved to data/network-subnets.yaml for privacy/security
+  # Load CIDR configurations from YAML
+  subnet_configs = try(
+    yamldecode(file("${path.module}/data/network-subnets.yaml")),
+    { cidr_allocations = {}, infra_subnet_cidrs = {} }
+  )
+  
+  cidr_allocations     = try(local.subnet_configs.cidr_allocations, {})
+  infra_subnet_cidrs   = try(local.subnet_configs.infra_subnet_cidrs, {})
 }

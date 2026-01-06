@@ -16,34 +16,36 @@ The networking stage establishes the core network infrastructure foundation for 
 ## Network Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                Global NCC Hub (Mesh Topology)                │
-│                  hub-global-ncc-hub                          │
-└──────┬────────┬────────┬────────┬────────┬──────────────────┘
-       │        │        │        │        │
-   ┌───▼───┐┌──▼───┐┌──▼───┐┌──▼───┐┌──▼──────┐
-   │ M1P   ││ M1NP ││ M3P  ││ M3NP ││ Transit │
-   │ VPC   ││ VPC  ││ VPC  ││ VPC  ││   VPC   │
-   │Spoke  ││Spoke ││Spoke ││Spoke ││  +RA    │
-   └───┬───┘└──┬───┘└──┬───┘└──┬───┘└──┬──────┘
-       │       │       │       │       │
-       └───────┴───┬───┴───────┴───────┘
-                   │
-              ┌────▼──────┐
-              │    NSI    │ (In-band Inspection)
-              │ Palo Alto │
-              │ Firewalls │
-              └───────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                  Global NCC Hub (Mesh Topology)                   │
+│                     hub-global-ncc-hub                            │
+│                    (8 Spokes Connected)                           │
+└───┬─────┬─────┬─────┬──────┬──────┬──────┬──────┬───────────────┘
+    │     │     │     │      │      │      │      │
+ ┌──▼──┐┌─▼──┐┌─▼──┐┌─▼───┐┌─▼────┐┌▼────┐┌▼────┐┌▼──────┐
+ │ M1P ││M1NP││M3P ││M3NP ││  RA  ││ FW  ││ FW  ││Shared │
+ │ VPC ││VPC ││VPC ││ VPC ││Appl. ││Data ││Mgmt ││ Svcs  │
+ │Spoke││Spk ││Spk ││Spoke││Spoke ││VPC  ││ VPC ││  VPC  │
+ └─────┘└────┘└────┘└─────┘└──────┘└─────┘└─────┘└───────┘
+                              │
+                         ┌────▼──────┐
+                         │    NSI    │ (In-band Inspection)
+                         │ Palo Alto │
+                         │ Firewalls │
+                         └───────────┘
 ```
 
 ## Projects Created
 
+Total of **5 Projects**:
+
 | Project | Name | Purpose |
 |---------|------|---------|
-| **Network Hub** | `prj-prd-gcp-40036-mgmt-nethub` | NCC Hub + Shared VPCs (M1P, M1NP, M3P, M3NP) |
-| **Network Transit** | `prj-prd-gcp-40038-mgmt-transit` | SD-WAN Router Appliances + Blue Cat DNS |
-| **Network Security** | `prj-prd-gcp-40039-mgmt-netsec` | Palo Alto VM-Series + NSI configuration |
-| **Private Service Connect** | `prj-prd-gcp-40040-mgmt-pvpc` | PSC endpoints for service consumption |
+| **M1P Host** | `prj-prd-gcp-xxxxx-host-m1p` | Model 1 Production Shared VPC Host |
+| **M1NP Host** | `prj-prd-gcp-xxxxx-host-m1np` | Model 1 Non-Production Shared VPC Host |
+| **M3P Host** | `prj-prd-gcp-xxxxx-host-m3p` | Model 3 Production Shared VPC Host |
+| **M3NP Host** | `prj-prd-gcp-xxxxx-host-m3np` | Model 3 Non-Production Shared VPC Host |
+| **Networking** | `prj-prd-gcp-40036-mgmt-nethub` | NCC Hub + Platform VPCs (Transit, Security, Shared Services) |
 
 ## Shared VPCs
 

@@ -12,6 +12,99 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Network CIDR Allocations - Confidential
+# CIDR blocks for Shared VPCs and Platform VPCs
+# Source: Carrier GCP LLD v1.1 (Section 1.1 & 1.2)
+
+# Shared VPC CIDR Allocations (Model 1 & Model 3)
+# Regional /16 blocks reserved for subnet vending
+cidr_allocations:
+  us-east4:
+    m1p: "10.150.0.0/16"    # Model 1 Production
+    m1np: "10.151.0.0/16"   # Model 1 Non-Production
+    m3p: "10.152.0.0/16"    # Model 3 Production
+    m3np: "10.153.0.0/16"   # Model 3 Non-Production
+  
+  us-central1:
+    m1p: "10.100.0.0/16"
+    m1np: "10.101.0.0/16"
+    m3p: "10.102.0.0/16"
+    m3np: "10.103.0.0/16"
+  
+  europe-west3:
+    m1p: "10.173.0.0/16"
+    m1np: "10.174.0.0/16"
+    m3p: "10.175.0.0/17"    # /17 for M3P EMEA
+    m3np: "10.175.128.0/17" # /17 for M3NP EMEA
+  
+  europe-west1:
+    m1p: "10.177.0.0/16"
+    m1np: "10.178.0.0/16"
+    m3p: "10.179.0.0/17"    # /17 for M3P EMEA
+    m3np: "10.179.128.0/17" # /17 for M3NP EMEA
+  
+  asia-southeast1:
+    m1p: "10.109.0.0/16"
+    m1np: "10.110.0.0/16"
+    m3p: "10.111.0.0/17"    # /17 for M3P APAC
+    m3np: "10.111.128.0/17" # /17 for M3NP APAC
+  
+  asia-east2:
+    m1p: "10.115.0.0/16"
+    m1np: "10.116.0.0/16"
+    m3p: "10.117.0.0/17"    # /17 for M3P APAC
+    m3np: "10.117.128.0/17" # /17 for M3NP APAC
+
+# Infrastructure Subnet CIDR Allocations (Platform VPCs)
+# Changed from /24 to /19 as per manager requirement
+# Source: Carrier GCP LLD v1.1 (Section 1.2)
+infra_subnet_cidrs:
+  us-east4:
+    transit: "10.154.0.0/19"      # Transit VPC base range (contains .0.0/24)
+    sec_data: "10.154.8.0/19"     # Security Data VPC base range (contains .8.0/24)
+    sec_mgmt: "10.154.16.0/19"    # Security Mgmt VPC base range (contains .16.0/24)
+    shared_svcs: "10.154.32.0/19" # Shared Services VPC base range (contains .32.0/24)
+  
+  us-central1:
+    transit: "10.154.1.0/19"
+    sec_data: "10.154.9.0/19"
+    sec_mgmt: "10.154.17.0/19"
+    shared_svcs: "10.154.33.0/19"
+  
+  europe-west1:
+    transit: "10.154.2.0/19"
+    sec_data: "10.154.10.0/19"
+    sec_mgmt: "10.154.18.0/19"
+    shared_svcs: "10.154.34.0/19"
+  
+  europe-west3:
+    transit: "10.154.3.0/19"
+    sec_data: "10.154.11.0/19"
+    sec_mgmt: "10.154.19.0/19"
+    shared_svcs: "10.154.35.0/19"
+  
+  asia-east2:
+    transit: "10.154.4.0/19"
+    sec_data: "10.154.12.0/19"
+    sec_mgmt: "10.154.20.0/19"
+    shared_svcs: "10.154.36.0/19"
+  
+  asia-southeast1:
+    transit: "10.154.5.0/19"
+    sec_data: "10.154.13.0/19"
+    sec_mgmt: "10.154.21.0/19"
+    shared_svcs: "10.154.37.0/19"
+
+# Platform VPC Additional Ranges (from LLD Section 1.2)
+# Global Shared Services VPC - Multiple /19 blocks
+shared_services_ranges:
+  slot1: "10.154.64.0/19"   # Regional Shared Services
+  slot2: "10.154.96.0/19"
+  slot3: "10.154.128.0/19"
+  slot4: "10.154.160.0/19"
+  slot5: "10.154.192.0/19"
+  slot6: "10.154.224.0/19"
+
 # Network Subnet Vending Configuration
 # Add subnet requests here for automated provisioning with IPAM integration
 
