@@ -1,0 +1,59 @@
+# Project .gitignore
+
+# Terraform
+**/.terraform/
+**/.terraform.lock.hcl
+**/*.tfstate
+**/*.tfstate.backup
+**/*.tfplan
+**/*.tfvars
+**/.terraform.tfstate.lock.info
+
+# IDE
+**/.vscode/
+**/.idea/
+**/*.swp
+**/*.swo
+**/*~
+
+# OS
+**/.DS_Store
+**/Thumbs.db
+
+# Logs
+**/*.log
+
+# Archives
+*.zip
+
+# Ignore user profile directories (accidentally tracked)
+../.bash_history
+../.copilot/
+../.gitconfig
+../.vscode/
+../AppData/
+../Contacts/
+../Desktop/
+../Downloads/
+../Favorites/
+../IntelGraphicsProfiles/
+../Links/
+../Music/
+../OneDrive/
+../Pictures/
+../Saved Games/
+../Searches/
+../Videos/
+../NTUSER.DAT*
+../ntuser.dat*
+../.oplus_*
+
+# Personal folders
+../Documents/Aamena/
+../Documents/Abdul/
+../Documents/Amme*/
+../Documents/Anam/
+../Documents/Bilal/
+../Documents/Rafat/
+../Documents/*.docx
+../Documents/*.pdf

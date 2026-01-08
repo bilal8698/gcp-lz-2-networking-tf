@@ -1,0 +1,96 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Network Subnet Vending Configuration
+# Add subnet requests here for automated provisioning with IPAM integration
+
+subnets:
+  # Example subnet vending request
+  # Uncomment and modify to request new subnets
+  
+  # - region: "us-east4"
+  #   model: "m1p"                              # m1p, m1np, m3p, m3np
+  #   business_unit: "whq"                      # Business unit abbreviation
+  #   application: "agtspace"                   # Application name
+  #   size: "S"                                 # S=/26 (64 IPs), M=/25 (128 IPs), L=/24 (256 IPs)
+  #   cidr_block: "10.150.1.0/26"              # Allocated by Blue Cat via APIGEE
+  #   
+  #   # Mandatory labels
+  #   cost_center: "109985"
+  #   owner: "ai-platform_carrier_com"
+  #   leanix_app_id: "app-05022"
+  #   
+  #   # Optional configurations
+  #   private_ip_google_access: true           # Default: true
+  #   flow_logs_sampling: 0.5                  # Default: 0.5 (50%)
+  #   flow_logs_aggregation_interval: "INTERVAL_5_SEC"  # Default: 5 seconds
+  #   
+  #   # Optional additional labels
+  #   additional_labels:
+  #     environment: "prd"
+  #     criticality: "high"
+
+  # Example: AI CoE Production Subnet in US-East4
+  # - region: "us-east4"
+  #   model: "m1p"
+  #   business_unit: "whq"
+  #   application: "aicoe-ml"
+  #   size: "M"
+  #   cidr_block: "10.150.2.0/25"
+  #   cost_center: "109985"
+  #   owner: "ai-platform_carrier_com"
+  #   leanix_app_id: "app-02064"
+
+  # Example: Carrier Energy DMZ Subnet in Europe
+  # - region: "europe-west3"
+  #   model: "m3p"
+  #   business_unit: "energy"
+  #   application: "energy-api"
+  #   size: "S"
+  #   cidr_block: "10.174.1.0/26"
+  #   cost_center: "100000"
+  #   owner: "energy_team_at_carrier_com"
+  #   leanix_app_id: "app-energy-001"
+
+# Subnet Vending Workflow:
+#
+# 1. Create a new branch: git checkout -b feature/add-subnet-{app}-{region}
+# 2. Add subnet configuration above (uncomment and modify example)
+# 3. IMPORTANT: Get CIDR allocation from Blue Cat IPAM before committing
+#    - Contact network team or use APIGEE endpoint to request allocation
+#    - Blue Cat will allocate IP range from available pool
+# 4. Commit changes: git commit -m "feat: add subnet for {app} in {region}"
+# 5. Push and create PR: git push origin feature/add-subnet-{app}-{region}
+# 6. GitHub Actions will run terraform plan and post results to PR
+# 7. Review plan output, ensure CIDR is correct and no conflicts
+# 8. After approval and merge, subnet will be created automatically
+# 9. Blue Cat IPAM will be updated with the new subnet allocation
+#
+# T-Shirt Sizing Guidelines:
+# - Small (S): /26 = 64 IPs - Default for most applications
+# - Medium (M): /25 = 128 IPs - For applications with 30-100 resources
+# - Large (L): /24 = 256 IPs - For large applications (requires approval)
+# - Exception: Larger than /24 requires architecture review board approval
+#
+# Mandatory Tags (Required for all subnets):
+# - cost_center: Cost center code for chargeback
+# - owner: Team/individual responsible (email format with _at_)
+# - application: Application name (lowercase, hyphen-separated)
+# - leanix_app_id: LeanIX application ID for architecture inventory
+#
+# VPC Flow Logs (Enabled by default):
+# - Helps with troubleshooting and security analysis
+# - Sampling: 50% (configurable)
+# - Aggregation: 5 seconds (configurable)
+# - Metadata: All fields included (latency, RTT, etc.)
