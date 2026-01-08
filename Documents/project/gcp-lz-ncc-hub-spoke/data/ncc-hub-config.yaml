@@ -1,0 +1,26 @@
+# NCC Hub Configuration
+# Network Connectivity Center Hub settings
+# "Whatever they do in the yaml files that would be the input" - Vijay
+
+hub:
+  # Project where NCC Hub will be created
+  project_id: prj-prd-gcp-40036-mgmt-nethub
+  
+  # Hub name (lowercase, following Carrier naming conventions)
+  name: carrier-ncc-hub-prod
+  
+  # Hub description
+  description: "Carrier Production NCC Hub for multi-region connectivity"
+  
+  # Enable global routing
+  enable_global_routing: false
+  
+  # Mandatory Carrier labels
+  labels:
+    cost_center: "network-infrastructure"
+    owner: "network-team"
+    application: "ncc-hub"
+    leanix_app_id: "app-ncc-001"
+    environment: "production"
+    zone: "global"
+    managed_by: "terraform"

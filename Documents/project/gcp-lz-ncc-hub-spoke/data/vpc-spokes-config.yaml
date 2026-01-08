@@ -1,0 +1,90 @@
+# VPC Spokes Configuration
+# Configuration for M1P, M1NP, M3P, M3NP shared VPC spokes
+# "That HUB will connect to all 4 spokes that are M1P, M1NP, M3P and M3NP" - Vijay
+
+spokes:
+  # Model 1 Production Spoke
+  m1p:
+    name: carrier-ncc-spoke-m1p
+    project_id: prj-prd-gcp-40036-m1p-host
+    vpc_name: global-host-m1p-vpc
+    vpc_project_id: prj-prd-gcp-40036-m1p-host
+    region: us-central1
+    zone: model-1
+    auto_activate: true
+    
+    # Optional: IP ranges to exclude/include
+    exclude_export_ranges: []
+    include_export_ranges: []
+    
+    # Mandatory Carrier labels
+    labels:
+      cost_center: "model1-production"
+      owner: "platform-team"
+      application: "shared-vpc-m1p"
+      leanix_app_id: "app-m1p-001"
+      environment: "production"
+      zone: "model-1"
+  
+  # Model 1 Non-Production Spoke
+  m1np:
+    name: carrier-ncc-spoke-m1np
+    project_id: prj-prd-gcp-40036-m1np-host
+    vpc_name: global-host-m1np-vpc
+    vpc_project_id: prj-prd-gcp-40036-m1np-host
+    region: us-central1
+    zone: model-1
+    auto_activate: true
+    
+    exclude_export_ranges: []
+    include_export_ranges: []
+    
+    labels:
+      cost_center: "model1-nonprod"
+      owner: "platform-team"
+      application: "shared-vpc-m1np"
+      leanix_app_id: "app-m1np-001"
+      environment: "non-production"
+      zone: "model-1"
+  
+  # Model 3 Production Spoke
+  m3p:
+    name: carrier-ncc-spoke-m3p
+    project_id: prj-prd-gcp-40036-m3p-host
+    vpc_name: global-host-m3p-vpc
+    vpc_project_id: prj-prd-gcp-40036-m3p-host
+    region: us-east1
+    zone: model-3
+    auto_activate: true
+    
+    exclude_export_ranges: []
+    include_export_ranges: []
+    
+    labels:
+      cost_center: "model3-production"
+      owner: "security-team"
+      application: "shared-vpc-m3p"
+      leanix_app_id: "app-m3p-001"
+      environment: "production"
+      zone: "model-3"
+  
+  # Model 3 Non-Production Spoke
+  m3np:
+    name: carrier-ncc-spoke-m3np
+    project_id: prj-prd-gcp-40036-m3np-host
+    vpc_name: global-host-m3np-vpc
+    vpc_project_id: prj-prd-gcp-40036-m3np-host
+    region: us-east1
+    zone: model-3
+    auto_activate: true
+    
+    exclude_export_ranges: []
+    include_export_ranges: []
+    
+    labels:
+      cost_center: "model3-nonprod"
+      owner: "security-team"
+      application: "shared-vpc-m3np"
+      leanix_app_id: "app-m3np-001"
+      environment: "non-production"
+      zone: "model-3"

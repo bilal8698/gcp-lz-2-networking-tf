@@ -1,0 +1,84 @@
+name: Terraform Plan
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'terraform/**'
+      - 'data/**'
+      - '.github/workflows/terraform-plan.yaml'
+
+jobs:
+  terraform-plan:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+      
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+        working-directory: terraform/
+      
+      - name: TFLint Setup
+        uses: terraform-linters/setup-tflint@v3
+        with:
+          tflint_version: latest
+      
+      - name: Run TFLint
+        run: |
+          tflint --init
+          tflint -f compact
+        working-directory: terraform/
+      
+      - name: Checkov Security Scan
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: terraform/
+          framework: terraform
+          soft_fail: false
+      
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+      
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform/
+      
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: terraform/
+      
+      - name: Terraform Plan
+        run: |
+          terraform plan \
+            -var="outputs_bucket=carrier-terraform-outputs" \
+            -var="deploy_transit_spoke=false" \
+            -out=tfplan
+        working-directory: terraform/
+      
+      - name: Save Plan
+        uses: actions/upload-artifact@v3
+        with:
+          name: terraform-plan
+          path: terraform/tfplan
+      
+      - name: Comment PR with Plan
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const plan = fs.readFileSync('terraform/tfplan', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## Terraform Plan\n\`\`\`\n${plan}\n\`\`\``
+            });

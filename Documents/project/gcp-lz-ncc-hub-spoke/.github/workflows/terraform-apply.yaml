@@ -1,0 +1,45 @@
+name: Terraform Apply
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'terraform/**'
+      - 'data/**'
+
+jobs:
+  terraform-apply:
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+      
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+      
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform/
+      
+      - name: Terraform Apply
+        run: |
+          terraform apply \
+            -var="outputs_bucket=carrier-terraform-outputs" \
+            -var="deploy_transit_spoke=false" \
+            -auto-approve
+        working-directory: terraform/
+      
+      - name: Upload State Summary
+        uses: actions/upload-artifact@v3
+        with:
+          name: terraform-state
+          path: terraform/.terraform
