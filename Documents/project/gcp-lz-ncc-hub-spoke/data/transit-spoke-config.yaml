@@ -1,19 +1,21 @@
 # Transit Router Appliance Spoke Configuration
-# For Transit VPC with Palo Alto firewall integration
+# For Transit VPC with SD-WAN Router Appliances (Cisco Catalyst 8000V)
 # "Interface 0 is one directional and interface 1 is another directional" - Vijay
+# Uses ncc-spoke-ra from cloud-foundation-fabric v45.0.0
+# Per LLD: Hosts SD-WAN RAs & BlueCat DNS & FW Management
 
 transit:
-  # Spoke configuration
-  spoke_name: carrier-ncc-spoke-transit-ra
-  project_id: prj-prd-gcp-40036-mgmt-nethub
-  vpc_name: transit-vpc
-  vpc_project_id: prj-prd-gcp-40036-mgmt-nethub
-  region: us-central1
+  # Spoke configuration (per LLD)
+  spoke_name: spoke-transit-ra
+  project_id: network-transit
+  vpc_name: global-transit-vpc
+  vpc_project_id: network-transit
+  region: us-east4
   zone: transit
   
-  # Cloud Router configuration
-  router_name: carrier-transit-router
-  router_asn: 64512
+  # Cloud Router configuration (per LLD naming: region-cr1)
+  router_name: useast4-cr1
+  router_asn: 16550
   
   # BGP advertisement settings
   advertise_mode: CUSTOM
@@ -26,29 +28,36 @@ transit:
       description: "Private network range"
     - range: "172.16.0.0/12"
       description: "Private network range"
+    - range: "192.168.0.0/16"
+      description: "Private network range"
   
-  # Router Appliance instances (Palo Alto firewalls)
-  # Interface 0 and Interface 1 for HA
+  # Router Appliance instances (Cisco Catalyst 8000V SD-WAN)
+  # Interface 0 and Interface 1 provide bidirectional connectivity with HA
+  # Per LLD: 2 SD-WAN RAs per region for High Availability
   router_appliances:
     interface0:
-      vm_uri: "projects/prj-prd-gcp-40036-mgmt-nethub/zones/us-central1-a/instances/palo-alto-fw01"
-      ip_address: "10.1.1.10"
-      peer_ip: "10.1.1.1"
+      # Primary SD-WAN Router Appliance (sdwan-ra-01)
+      vm_uri: "projects/network-transit/zones/us-east4-a/instances/sdwan-ra-01"
+      ip_address: "10.154.0.10"
+      peer_ip: "10.154.0.1"
       peer_asn: 65001
       route_priority: 100
     
     interface1:
-      vm_uri: "projects/prj-prd-gcp-40036-mgmt-nethub/zones/us-central1-b/instances/palo-alto-fw02"
-      ip_address: "10.1.1.11"
-      peer_ip: "10.1.1.2"
-      peer_asn: 65002
+      # Secondary SD-WAN Router Appliance (sdwan-ra-02) for HA
+      vm_uri: "projects/network-transit/zones/us-east4-b/instances/sdwan-ra-02"
+      ip_address: "10.154.0.11"
+      peer_ip: "10.154.0.2"
+      peer_asn: 65001
       route_priority: 110
   
   # Mandatory Carrier labels
   labels:
     cost_center: "network-infrastructure"
     owner: "network-team"
-    application: "transit-vpc"
-    leanix_app_id: "app-transit-001"
+    application: "transit-vpc-ra"
+    leanix_app_id: "app-transit-ra-001"
     environment: "production"
     zone: "transit"
+    spoke_type: "router-appliance"
+    managed_by: "terraform"

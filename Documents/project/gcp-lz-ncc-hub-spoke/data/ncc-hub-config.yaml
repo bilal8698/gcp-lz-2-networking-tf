@@ -1,19 +1,20 @@
 # NCC Hub Configuration
 # Network Connectivity Center Hub settings
 # "Whatever they do in the yaml files that would be the input" - Vijay
+# Based on Carrier LLD Document
 
 hub:
-  # Project where NCC Hub will be created
-  project_id: prj-prd-gcp-40036-mgmt-nethub
+  # Project where NCC Hub will be created (per LLD)
+  project_id: global-ncc-hub
   
-  # Hub name (lowercase, following Carrier naming conventions)
-  name: carrier-ncc-hub-prod
+  # Hub name (per LLD: global-carrier-hub)
+  name: global-carrier-hub
   
   # Hub description
-  description: "Carrier Production NCC Hub for multi-region connectivity"
+  description: "Carrier Production NCC Hub - Mesh topology for global transitivity"
   
-  # Enable global routing
-  enable_global_routing: false
+  # Enable global routing for mesh topology
+  enable_global_routing: true
   
   # Mandatory Carrier labels
   labels:

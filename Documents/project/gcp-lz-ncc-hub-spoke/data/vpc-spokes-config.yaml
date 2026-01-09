@@ -1,19 +1,26 @@
 # VPC Spokes Configuration
-# Configuration for M1P, M1NP, M3P, M3NP shared VPC spokes
-# "That HUB will connect to all 4 spokes that are M1P, M1NP, M3P and M3NP" - Vijay
+# Configuration for all 8 VPC spokes per Carrier LLD Document
+# - 4 Model spokes: M1P, M1NP, M3P, M3NP (in shared-services project)
+# - 4 Network VPCs: Security Data, Security Mgmt, Shared Services, Transit
+# "These all will set it up as spoke" - Vijay
+# Deployed across 6 regions: us-east4, us-central1, europe-west3, europe-west1, asia-southeast1, asia-east2
 
 spokes:
-  # Model 1 Production Spoke
+  # ========================================
+  # Model Spokes (M1P, M1NP, M3P, M3NP)
+  # ========================================
+  
+  # Model 1 Production Spoke (spoke-m1p per LLD)
   m1p:
-    name: carrier-ncc-spoke-m1p
-    project_id: prj-prd-gcp-40036-m1p-host
+    name: spoke-m1p
+    project_id: shared-services
     vpc_name: global-host-m1p-vpc
-    vpc_project_id: prj-prd-gcp-40036-m1p-host
-    region: us-central1
+    vpc_project_id: shared-services
+    region: us-east4
     zone: model-1
     auto_activate: true
     
-    # Optional: IP ranges to exclude/include
+    # IP ranges to exclude/include
     exclude_export_ranges: []
     include_export_ranges: []
     
@@ -26,13 +33,13 @@ spokes:
       environment: "production"
       zone: "model-1"
   
-  # Model 1 Non-Production Spoke
+  # Model 1 Non-Production Spoke (spoke-m1np per LLD)
   m1np:
-    name: carrier-ncc-spoke-m1np
-    project_id: prj-prd-gcp-40036-m1np-host
+    name: spoke-m1np
+    project_id: shared-services
     vpc_name: global-host-m1np-vpc
-    vpc_project_id: prj-prd-gcp-40036-m1np-host
-    region: us-central1
+    vpc_project_id: shared-services
+    region: us-east4
     zone: model-1
     auto_activate: true
     
@@ -47,13 +54,13 @@ spokes:
       environment: "non-production"
       zone: "model-1"
   
-  # Model 3 Production Spoke
+  # Model 3 Production Spoke (spoke-m3p per LLD)
   m3p:
-    name: carrier-ncc-spoke-m3p
-    project_id: prj-prd-gcp-40036-m3p-host
+    name: spoke-m3p
+    project_id: shared-services
     vpc_name: global-host-m3p-vpc
-    vpc_project_id: prj-prd-gcp-40036-m3p-host
-    region: us-east1
+    vpc_project_id: shared-services
+    region: us-east4
     zone: model-3
     auto_activate: true
     
@@ -68,13 +75,13 @@ spokes:
       environment: "production"
       zone: "model-3"
   
-  # Model 3 Non-Production Spoke
+  # Model 3 Non-Production Spoke (spoke-m3np per LLD)
   m3np:
-    name: carrier-ncc-spoke-m3np
-    project_id: prj-prd-gcp-40036-m3np-host
+    name: spoke-m3np
+    project_id: shared-services
     vpc_name: global-host-m3np-vpc
-    vpc_project_id: prj-prd-gcp-40036-m3np-host
-    region: us-east1
+    vpc_project_id: shared-services
+    region: us-east4
     zone: model-3
     auto_activate: true
     
@@ -88,3 +95,92 @@ spokes:
       leanix_app_id: "app-m3np-001"
       environment: "non-production"
       zone: "model-3"
+  
+  # ========================================
+  # Network VPCs (in mgmt-nethub project)
+  # ========================================
+  
+  # Security Data VPC (per LLD: global-security-vpc-data)
+  security-data:
+    name: spoke-security-data
+    project_id: network-security
+    vpc_name: global-security-vpc-data
+    vpc_project_id: network-security
+    region: us-east4
+    zone: security
+    auto_activate: true
+    
+    exclude_export_ranges: []
+    include_export_ranges: []
+    
+    labels:
+      cost_center: "network-infrastructure"
+      owner: "security-team"
+      application: "security-data-vpc"
+      leanix_app_id: "app-sec-data-001"
+      environment: "production"
+      zone: "security"
+  
+  # Security Management VPC (per LLD: global-security-vpc-mgmt)
+  security-mgmt:
+    name: spoke-security-mgmt
+    project_id: network-security
+    vpc_name: global-security-vpc-mgmt
+    vpc_project_id: network-security
+    region: us-east4
+    zone: security
+    auto_activate: true
+    
+    exclude_export_ranges: []
+    include_export_ranges: []
+    
+    labels:
+      cost_center: "network-infrastructure"
+      owner: "security-team"
+      application: "security-mgmt-vpc"
+      leanix_app_id: "app-sec-mgmt-001"
+      environment: "production"
+      zone: "security"
+  
+  # Shared Services VPC (per LLD: global-shared-svcs-vpc in shared-host-pvpc)
+  shared-services:
+    name: spoke-shared-services
+    project_id: shared-host-pvpc
+    vpc_name: global-shared-svcs-vpc
+    vpc_project_id: shared-host-pvpc
+    region: us-east4
+    zone: shared-services
+    auto_activate: true
+    
+    exclude_export_ranges: []
+    include_export_ranges: []
+    
+    labels:
+      cost_center: "network-infrastructure"
+      owner: "platform-team"
+      application: "shared-services-vpc"
+      leanix_app_id: "app-shared-001"
+      environment: "production"
+      zone: "shared-services"
+  
+  # Transit VPC (per LLD: global-transit-vpc in network-transit project)
+  # Note: Transit VPC also has RA spoke in transit-spoke-config.yaml
+  transit:
+    name: spoke-transit
+    project_id: network-transit
+    vpc_name: global-transit-vpc
+    vpc_project_id: network-transit
+    region: us-east4
+    zone: transit
+    auto_activate: true
+    
+    exclude_export_ranges: []
+    include_export_ranges: []
+    
+    labels:
+      cost_center: "network-infrastructure"
+      owner: "network-team"
+      application: "transit-vpc"
+      leanix_app_id: "app-transit-001"
+      environment: "production"
+      zone: "transit"

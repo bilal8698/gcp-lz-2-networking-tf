@@ -1,19 +1,29 @@
 # Main Orchestration File
 # "From outside we are calling those modules" - Vijay's pattern
 # This file orchestrates all NCC Hub and Spoke deployments
+#
+# Architecture: 1 NCC Hub connecting to 9 spokes total:
+# - 8 VPC Spokes: M1P, M1NP, M3P, M3NP, FW Data, FW Mgmt, Shared Services, Transit
+# - 1 RA Spoke: Transit (with Palo Alto router appliances)
 
-# Create NCC Hub
+# ==============================================================================
+# NCC Hub (Network Connectivity Center Hub)
+# ==============================================================================
 module "ncc_hub" {
   source = "./modules/ncc-hub"
 
-  project_id           = local.ncc_hub_config.project_id
-  hub_name             = local.ncc_hub_config.hub_name
-  description          = local.ncc_hub_config.description
+  project_id            = local.ncc_hub_config.project_id
+  hub_name              = local.ncc_hub_config.hub_name
+  description           = local.ncc_hub_config.description
   enable_global_routing = local.ncc_hub_config.enable_global_routing
-  labels               = local.ncc_hub_config.labels
+  labels                = local.ncc_hub_config.labels
 }
 
-# Create VPC Spokes for Model 1 and Model 3 (M1P, M1NP, M3P, M3NP)
+# ==============================================================================
+# VPC Spokes (8 total)
+# - Model 1 and 3 Spokes: M1P, M1NP, M3P, M3NP
+# - Network VPCs: FW Data, FW Mgmt, Shared Services, Transit
+# ==============================================================================
 module "vpc_spokes" {
   source   = "./modules/vpc-spoke"
   for_each = local.vpc_spokes_config
@@ -33,25 +43,29 @@ module "vpc_spokes" {
   depends_on = [module.ncc_hub]
 }
 
-# Create Router Appliance Spoke for Transit VPC
+# ==============================================================================
+# Router Appliance Spoke for Transit VPC
+# Uses ncc-spoke-ra from cloud-foundation-fabric v45.0.0
+# "Interface 0 is one directional and interface 1 is another directional" - Vijay
+# ==============================================================================
 module "transit_ra_spoke" {
   source = "./modules/ra-spoke"
   count  = var.deploy_transit_spoke ? 1 : 0
 
-  hub_id              = module.ncc_hub.hub_id
-  spoke_name          = local.transit_spoke_config.spoke_name
-  project_id          = local.transit_spoke_config.project_id
-  vpc_name            = local.transit_spoke_config.vpc_name
-  vpc_project_id      = local.transit_spoke_config.vpc_project_id
-  region              = local.transit_spoke_config.region
-  router_name         = local.transit_spoke_config.router_name
-  router_asn          = local.transit_spoke_config.router_asn
-  zone                = local.transit_spoke_config.zone
-  router_appliances   = local.transit_spoke_config.router_appliances
-  advertise_mode      = local.transit_spoke_config.advertise_mode
-  advertised_groups   = local.transit_spoke_config.advertised_groups
+  hub_id               = module.ncc_hub.hub_id
+  spoke_name           = local.transit_spoke_config.spoke_name
+  project_id           = local.transit_spoke_config.project_id
+  vpc_name             = local.transit_spoke_config.vpc_name
+  vpc_project_id       = local.transit_spoke_config.vpc_project_id
+  region               = local.transit_spoke_config.region
+  router_name          = local.transit_spoke_config.router_name
+  router_asn           = local.transit_spoke_config.router_asn
+  zone                 = local.transit_spoke_config.zone
+  router_appliances    = local.transit_spoke_config.router_appliances
+  advertise_mode       = local.transit_spoke_config.advertise_mode
+  advertised_groups    = local.transit_spoke_config.advertised_groups
   advertised_ip_ranges = local.transit_spoke_config.advertised_ip_ranges
-  labels              = local.transit_spoke_config.labels
+  labels               = local.transit_spoke_config.labels
 
-  depends_on = [module.ncc_hub]
+  depends_on = [module.ncc_hub, module.vpc_spokes]
 }

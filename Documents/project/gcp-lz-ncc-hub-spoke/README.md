@@ -4,18 +4,32 @@
 
 This repository implements **Network Connectivity Center (NCC) Hub and Spokes** for Carrier's GCP Landing Zone following Vijay's modular pattern.
 
+**"We will create a HUB in the NCC and these all will set it up as spoke."** - Vijay
+
 ### Architecture
 
 ```
 NCC Hub (prj-prd-gcp-40036-mgmt-nethub)
-├── VPC Spokes (4)
-│   ├── M1P (Model 1 Production)
-│   ├── M1NP (Model 1 Non-Production)
-│   ├── M3P (Model 3 Production)
-│   └── M3NP (Model 3 Non-Production)
+├── VPC Spokes (8 total)
+│   ├── Model Spokes (4)
+│   │   ├── M1P  (Model 1 Production)
+│   │   ├── M1NP (Model 1 Non-Production)
+│   │   ├── M3P  (Model 3 Production)
+│   │   └── M3NP (Model 3 Non-Production)
+│   │
+│   └── Network VPCs (4)
+│       ├── FW Data VPC (Security Data)
+│       ├── FW Mgmt VPC (Security Management)
+│       ├── Shared Services VPC
+│       └── Transit VPC (also has RA spoke)
+│
 └── RA Spoke (1)
-    └── Transit VPC (Router Appliance with Palo Alto)
+    └── Transit VPC (Router Appliance with Palo Alto FW)
+        ├── Interface 0 (one directional)
+        └── Interface 1 (other directional)
 ```
+
+**Total Spokes:** 9 (8 VPC spokes + 1 RA spoke)
 
 ## Repository Structure
 
@@ -29,25 +43,31 @@ gcp-lz-ncc-hub-spoke/
 │   ├── variables.tf         # Repository-level inputs
 │   ├── outputs.tf           # Outputs for downstream modules
 │   ├── backend.tf           # GCS backend configuration
-│   ├── versions.tf          # Provider versions
+│   ├── versions.tf          # Provider versions (uses CFF v45.0.0)
 │   │
 │   └── modules/             # Internal modules
 │       ├── ncc-hub/         # Hub creation module
-│       ├── vpc-spoke/       # VPC spoke module (M1, M3)
+│       ├── vpc-spoke/       # VPC spoke module (8 VPCs)
 │       └── ra-spoke/        # Router Appliance spoke (Transit)
 │
 └── data/                    # YAML configuration files
-    ├── ncc-hub-config.yaml
-    ├── vpc-spokes-config.yaml
-    └── transit-spoke-config.yaml
+    ├── ncc-hub-config.yaml       # Hub configuration
+    ├── vpc-spokes-config.yaml    # 8 VPC spokes config
+    └── transit-spoke-config.yaml # Transit RA spoke config
 ```
 
 ## Prerequisites
 
+✅ **Confirmed Available (Manager approved):**
+- Service account in `prj-prd-gcp-40036-mgmt-nethub`
+- 4 VPCs ready: FW Data, FW Mgmt, Shared Services, Transit
+- Project: `prj-prd-gcp-40036-mgmt-nethub` (Network Hub project)
+
+**Additional Requirements:**
 - Terraform >= 1.5.0
-- GCP Project: `prj-prd-gcp-40036-mgmt-nethub` (Network Hub project)
 - Shared VPC projects must exist (M1P, M1NP, M3P, M3NP)
 - GCS bucket for state storage: `carrier-terraform-state`
+- Palo Alto firewalls deployed (for Transit RA spoke)
 - GCS bucket for outputs: `carrier-terraform-outputs`
 
 ## Configuration
