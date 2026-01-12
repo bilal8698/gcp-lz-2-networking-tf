@@ -1,0 +1,19 @@
+# Example terraform.tfvars file
+# Copy this file to terraform.tfvars and customize
+
+# Path to configuration files (relative to terraform/ directory)
+model_vpcs_config_file          = "../data/model-vpcs-config.yaml"
+infrastructure_vpcs_config_file = "../data/infrastructure-vpcs-config.yaml"
+
+# Common labels for all resources
+labels = {
+  environment  = "production"
+  managed-by   = "terraform"
+  module       = "vpc-foundation"
+  cost-center  = "networking"
+  project-code = "carrier-lld-v1"
+}
+
+# Enable/disable features
+enable_cloud_nat     = true
+enable_cloud_routers = true

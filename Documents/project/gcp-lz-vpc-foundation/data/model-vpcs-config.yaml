@@ -1,0 +1,229 @@
+# Model VPCs Configuration - M1P, M1NP, M3P, M3NP
+# Per Carrier LLD v1.0 - Reserved Pool /16 blocks per region
+# Subnets are vended dynamically by BlueCat IPAM
+
+model_vpcs:
+  m1p:
+    vpc_name: global-host-m1p-vpc
+    project_id: shared-services
+    description: "Model 1 Production - Host VPC for shared services"
+    routing_mode: GLOBAL
+    auto_create_subnetworks: false
+    delete_default_routes_on_create: false
+    enable_ula_internal_ipv6: false
+    
+    # Reserved Pool - Subnets vended by BlueCat IPAM
+    subnets:
+      - name: useast4-m1p-reserved-pool
+        region: us-east4
+        ip_cidr_range: 10.150.0.0/16
+        description: "Reserved pool for M1P workloads in us-east4"
+        private_ip_google_access: true
+        
+      - name: uscentral1-m1p-reserved-pool
+        region: us-central1
+        ip_cidr_range: 10.100.0.0/16
+        description: "Reserved pool for M1P workloads in us-central1"
+        private_ip_google_access: true
+        
+      - name: europewest1-m1p-reserved-pool
+        region: europe-west1
+        ip_cidr_range: 10.177.0.0/16
+        description: "Reserved pool for M1P workloads in europe-west1"
+        private_ip_google_access: true
+        
+      - name: europewest3-m1p-reserved-pool
+        region: europe-west3
+        ip_cidr_range: 10.173.0.0/16
+        description: "Reserved pool for M1P workloads in europe-west3"
+        private_ip_google_access: true
+        
+      - name: asiaeast2-m1p-reserved-pool
+        region: asia-east2
+        ip_cidr_range: 10.115.0.0/16
+        description: "Reserved pool for M1P workloads in asia-east2"
+        private_ip_google_access: true
+        
+      - name: asiasoutheast1-m1p-reserved-pool
+        region: asia-southeast1
+        ip_cidr_range: 10.109.0.0/16
+        description: "Reserved pool for M1P workloads in asia-southeast1"
+        private_ip_google_access: true
+    
+    cloud_nat:
+      enabled: true
+      regions:
+        - us-east4
+        - us-central1
+        - europe-west1
+        - europe-west3
+        - asia-east2
+        - asia-southeast1
+
+  m1np:
+    vpc_name: global-host-m1np-vpc
+    project_id: shared-services
+    description: "Model 1 Non-Production - Host VPC for shared services"
+    routing_mode: GLOBAL
+    auto_create_subnetworks: false
+    delete_default_routes_on_create: false
+    enable_ula_internal_ipv6: false
+    
+    subnets:
+      - name: useast4-m1np-reserved-pool
+        region: us-east4
+        ip_cidr_range: 10.151.0.0/16
+        description: "Reserved pool for M1NP workloads in us-east4"
+        private_ip_google_access: true
+        
+      - name: uscentral1-m1np-reserved-pool
+        region: us-central1
+        ip_cidr_range: 10.101.0.0/16
+        description: "Reserved pool for M1NP workloads in us-central1"
+        private_ip_google_access: true
+        
+      - name: europewest1-m1np-reserved-pool
+        region: europe-west1
+        ip_cidr_range: 10.178.0.0/16
+        description: "Reserved pool for M1NP workloads in europe-west1"
+        private_ip_google_access: true
+        
+      - name: europewest3-m1np-reserved-pool
+        region: europe-west3
+        ip_cidr_range: 10.174.0.0/16
+        description: "Reserved pool for M1NP workloads in europe-west3"
+        private_ip_google_access: true
+        
+      - name: asiaeast2-m1np-reserved-pool
+        region: asia-east2
+        ip_cidr_range: 10.116.0.0/16
+        description: "Reserved pool for M1NP workloads in asia-east2"
+        private_ip_google_access: true
+        
+      - name: asiasoutheast1-m1np-reserved-pool
+        region: asia-southeast1
+        ip_cidr_range: 10.110.0.0/16
+        description: "Reserved pool for M1NP workloads in asia-southeast1"
+        private_ip_google_access: true
+    
+    cloud_nat:
+      enabled: true
+      regions:
+        - us-east4
+        - us-central1
+        - europe-west1
+        - europe-west3
+        - asia-east2
+        - asia-southeast1
+
+  m3p:
+    vpc_name: global-host-m3p-vpc
+    project_id: shared-services
+    description: "Model 3 Production - Host VPC for shared services"
+    routing_mode: GLOBAL
+    auto_create_subnetworks: false
+    delete_default_routes_on_create: false
+    enable_ula_internal_ipv6: false
+    
+    subnets:
+      - name: useast4-m3p-reserved-pool
+        region: us-east4
+        ip_cidr_range: 10.152.0.0/16
+        description: "Reserved pool for M3P workloads in us-east4"
+        private_ip_google_access: true
+        
+      - name: uscentral1-m3p-reserved-pool
+        region: us-central1
+        ip_cidr_range: 10.102.0.0/16
+        description: "Reserved pool for M3P workloads in us-central1"
+        private_ip_google_access: true
+        
+      - name: europewest1-m3p-reserved-pool
+        region: europe-west1
+        ip_cidr_range: 10.179.0.0/17
+        description: "Reserved pool for M3P workloads in europe-west1"
+        private_ip_google_access: true
+        
+      - name: europewest3-m3p-reserved-pool
+        region: europe-west3
+        ip_cidr_range: 10.175.0.0/17
+        description: "Reserved pool for M3P workloads in europe-west3"
+        private_ip_google_access: true
+        
+      - name: asiaeast2-m3p-reserved-pool
+        region: asia-east2
+        ip_cidr_range: 10.117.0.0/17
+        description: "Reserved pool for M3P workloads in asia-east2"
+        private_ip_google_access: true
+        
+      - name: asiasoutheast1-m3p-reserved-pool
+        region: asia-southeast1
+        ip_cidr_range: 10.111.0.0/17
+        description: "Reserved pool for M3P workloads in asia-southeast1"
+        private_ip_google_access: true
+    
+    cloud_nat:
+      enabled: true
+      regions:
+        - us-east4
+        - us-central1
+        - europe-west1
+        - europe-west3
+        - asia-east2
+        - asia-southeast1
+
+  m3np:
+    vpc_name: global-host-m3np-vpc
+    project_id: shared-services
+    description: "Model 3 Non-Production - Host VPC for shared services"
+    routing_mode: GLOBAL
+    auto_create_subnetworks: false
+    delete_default_routes_on_create: false
+    enable_ula_internal_ipv6: false
+    
+    subnets:
+      - name: useast4-m3np-reserved-pool
+        region: us-east4
+        ip_cidr_range: 10.153.0.0/16
+        description: "Reserved pool for M3NP workloads in us-east4"
+        private_ip_google_access: true
+        
+      - name: uscentral1-m3np-reserved-pool
+        region: us-central1
+        ip_cidr_range: 10.103.0.0/16
+        description: "Reserved pool for M3NP workloads in us-central1"
+        private_ip_google_access: true
+        
+      - name: europewest1-m3np-reserved-pool
+        region: europe-west1
+        ip_cidr_range: 10.179.128.0/17
+        description: "Reserved pool for M3NP workloads in europe-west1"
+        private_ip_google_access: true
+        
+      - name: europewest3-m3np-reserved-pool
+        region: europe-west3
+        ip_cidr_range: 10.175.128.0/17
+        description: "Reserved pool for M3NP workloads in europe-west3"
+        private_ip_google_access: true
+        
+      - name: asiaeast2-m3np-reserved-pool
+        region: asia-east2
+        ip_cidr_range: 10.117.128.0/17
+        description: "Reserved pool for M3NP workloads in asia-east2"
+        private_ip_google_access: true
+        
+      - name: asiasoutheast1-m3np-reserved-pool
+        region: asia-southeast1
+        ip_cidr_range: 10.111.0.0/17
+        description: "Reserved pool for M3NP workloads in asia-southeast1"
+        private_ip_google_access: true
+    
+    cloud_nat:
+      enabled: true
+      regions:
+        - us-east4
+        - us-central1
+        - europe-west1
+        - europe-west3
+        - asia-east2
+        - asia-southeast1

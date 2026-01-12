@@ -1,0 +1,232 @@
+# Infrastructure VPCs Configuration - Transit, Security, Shared Services
+# Per Carrier LLD v1.0 - /24 subnets per region
+
+infrastructure_vpcs:
+  transit:
+    vpc_name: global-transit-vpc
+    project_id: network-transit
+    description: "Transit VPC - Hosts SD-WAN Router Appliances, BlueCat DNS, and Cloud Routers"
+    routing_mode: GLOBAL
+    auto_create_subnetworks: false
+    delete_default_routes_on_create: false
+    enable_ula_internal_ipv6: false
+    
+    subnets:
+      - name: useast4-transit-subnet
+        region: us-east4
+        ip_cidr_range: 10.154.0.0/24
+        description: "Transit subnet for SD-WAN and BlueCat in us-east4"
+        private_ip_google_access: true
+        
+      - name: uscentral1-transit-subnet
+        region: us-central1
+        ip_cidr_range: 10.154.1.0/24
+        description: "Transit subnet for SD-WAN and BlueCat in us-central1"
+        private_ip_google_access: true
+        
+      - name: europewest1-transit-subnet
+        region: europe-west1
+        ip_cidr_range: 10.154.2.0/24
+        description: "Transit subnet for SD-WAN and BlueCat in europe-west1"
+        private_ip_google_access: true
+        
+      - name: europewest3-transit-subnet
+        region: europe-west3
+        ip_cidr_range: 10.154.3.0/24
+        description: "Transit subnet for SD-WAN and BlueCat in europe-west3"
+        private_ip_google_access: true
+        
+      - name: asiaeast2-transit-subnet
+        region: asia-east2
+        ip_cidr_range: 10.154.4.0/24
+        description: "Transit subnet for SD-WAN and BlueCat in asia-east2"
+        private_ip_google_access: true
+        
+      - name: asiasoutheast1-transit-subnet
+        region: asia-southeast1
+        ip_cidr_range: 10.154.5.0/24
+        description: "Transit subnet for SD-WAN and BlueCat in asia-southeast1"
+        private_ip_google_access: true
+    
+    # Cloud Router for SD-WAN BGP peering (ASN 16550)
+    cloud_routers:
+      enabled: true
+      asn: 16550
+      regions:
+        - us-east4
+        - us-central1
+        - europe-west1
+        - europe-west3
+        - asia-east2
+        - asia-southeast1
+    
+    cloud_nat:
+      enabled: true
+      regions:
+        - us-east4
+        - us-central1
+        - europe-west1
+        - europe-west3
+        - asia-east2
+        - asia-southeast1
+
+  security_data:
+    vpc_name: global-security-vpc-data
+    project_id: network-security
+    description: "Security Data VPC - Palo Alto VM-Series data plane (nic0)"
+    routing_mode: GLOBAL
+    auto_create_subnetworks: false
+    delete_default_routes_on_create: false
+    enable_ula_internal_ipv6: false
+    
+    subnets:
+      - name: useast4-security-data-subnet
+        region: us-east4
+        ip_cidr_range: 10.154.8.0/24
+        description: "Security data plane subnet in us-east4"
+        private_ip_google_access: true
+        
+      - name: uscentral1-security-data-subnet
+        region: us-central1
+        ip_cidr_range: 10.154.9.0/24
+        description: "Security data plane subnet in us-central1"
+        private_ip_google_access: true
+        
+      - name: europewest1-security-data-subnet
+        region: europe-west1
+        ip_cidr_range: 10.154.10.0/24
+        description: "Security data plane subnet in europe-west1"
+        private_ip_google_access: true
+        
+      - name: europewest3-security-data-subnet
+        region: europe-west3
+        ip_cidr_range: 10.154.11.0/24
+        description: "Security data plane subnet in europe-west3"
+        private_ip_google_access: true
+        
+      - name: asiaeast2-security-data-subnet
+        region: asia-east2
+        ip_cidr_range: 10.154.12.0/24
+        description: "Security data plane subnet in asia-east2"
+        private_ip_google_access: true
+        
+      - name: asiasoutheast1-security-data-subnet
+        region: asia-southeast1
+        ip_cidr_range: 10.154.13.0/24
+        description: "Security data plane subnet in asia-southeast1"
+        private_ip_google_access: true
+    
+    cloud_nat:
+      enabled: false  # Firewall data plane doesn't need NAT
+
+  security_mgmt:
+    vpc_name: global-security-vpc-mgmt
+    project_id: network-security
+    description: "Security Management VPC - Palo Alto VM-Series management plane (nic1)"
+    routing_mode: GLOBAL
+    auto_create_subnetworks: false
+    delete_default_routes_on_create: false
+    enable_ula_internal_ipv6: false
+    
+    subnets:
+      - name: useast4-security-mgmt-subnet
+        region: us-east4
+        ip_cidr_range: 10.154.16.0/24
+        description: "Security management plane subnet in us-east4"
+        private_ip_google_access: true
+        
+      - name: uscentral1-security-mgmt-subnet
+        region: us-central1
+        ip_cidr_range: 10.154.17.0/24
+        description: "Security management plane subnet in us-central1"
+        private_ip_google_access: true
+        
+      - name: europewest1-security-mgmt-subnet
+        region: europe-west1
+        ip_cidr_range: 10.154.18.0/24
+        description: "Security management plane subnet in europe-west1"
+        private_ip_google_access: true
+        
+      - name: europewest3-security-mgmt-subnet
+        region: europe-west3
+        ip_cidr_range: 10.154.19.0/24
+        description: "Security management plane subnet in europe-west3"
+        private_ip_google_access: true
+        
+      - name: asiaeast2-security-mgmt-subnet
+        region: asia-east2
+        ip_cidr_range: 10.154.20.0/24
+        description: "Security management plane subnet in asia-east2"
+        private_ip_google_access: true
+        
+      - name: asiasoutheast1-security-mgmt-subnet
+        region: asia-southeast1
+        ip_cidr_range: 10.154.21.0/24
+        description: "Security management plane subnet in asia-southeast1"
+        private_ip_google_access: true
+    
+    cloud_nat:
+      enabled: true  # Management plane needs internet access
+      regions:
+        - us-east4
+        - us-central1
+        - europe-west1
+        - europe-west3
+        - asia-east2
+        - asia-southeast1
+
+  shared_services:
+    vpc_name: global-shared-svcs-vpc
+    project_id: shared-host-pvpc
+    description: "Shared Services VPC - Hosts PSC endpoints and shared services"
+    routing_mode: GLOBAL
+    auto_create_subnetworks: false
+    delete_default_routes_on_create: false
+    enable_ula_internal_ipv6: false
+    
+    subnets:
+      - name: useast4-shared-svcs-subnet
+        region: us-east4
+        ip_cidr_range: 10.154.32.0/24
+        description: "Shared services subnet in us-east4"
+        private_ip_google_access: true
+        
+      - name: uscentral1-shared-svcs-subnet
+        region: us-central1
+        ip_cidr_range: 10.154.33.0/24
+        description: "Shared services subnet in us-central1"
+        private_ip_google_access: true
+        
+      - name: europewest1-shared-svcs-subnet
+        region: europe-west1
+        ip_cidr_range: 10.154.34.0/24
+        description: "Shared services subnet in europe-west1"
+        private_ip_google_access: true
+        
+      - name: europewest3-shared-svcs-subnet
+        region: europe-west3
+        ip_cidr_range: 10.154.35.0/24
+        description: "Shared services subnet in europe-west3"
+        private_ip_google_access: true
+        
+      - name: asiaeast2-shared-svcs-subnet
+        region: asia-east2
+        ip_cidr_range: 10.154.36.0/24
+        description: "Shared services subnet in asia-east2"
+        private_ip_google_access: true
+        
+      - name: asiasoutheast1-shared-svcs-subnet
+        region: asia-southeast1
+        ip_cidr_range: 10.154.37.0/24
+        description: "Shared services subnet in asia-southeast1"
+        private_ip_google_access: true
+    
+    cloud_nat:
+      enabled: true
+      regions:
+        - us-east4
+        - us-central1
+        - europe-west1
+        - europe-west3
+        - asia-east2
+        - asia-southeast1
