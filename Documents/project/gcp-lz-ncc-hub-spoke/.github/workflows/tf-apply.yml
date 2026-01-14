@@ -1,0 +1,171 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: 'Reusable TF Apply'
+
+on:
+  workflow_call:
+    inputs:
+      stage:
+        required: true
+        type: string
+        description: 'Stage name (networking, ncc-hub-spoke)'
+      environment:
+        required: true
+        type: string
+        description: 'Environment (plan or apply)'
+    secrets:
+      wif_provider:
+        required: true
+        description: 'Workload Identity Federation Provider'
+      service_account:
+        required: true
+        description: 'Service Account Email'
+      outputs_bucket:
+        required: true
+        description: 'Outputs GCS Bucket Name'
+      organization_id:
+        required: false
+        description: 'GCP Organization ID'
+      organization_domain:
+        required: false
+        description: 'Organization Domain'
+      customer_id:
+        required: false
+        description: 'Google Workspace Customer ID'
+      billing_account_id:
+        required: false
+        description: 'GCP Billing Account ID'
+      repository_organization:
+        required: false
+        description: 'GitHub Organization Name'
+
+env:
+  TF_IN_AUTOMATION: true
+  TF_CLI_ARGS: '-no-color'
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+jobs:
+  apply:
+    name: 'apply'
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: 'Checkout Repository'
+      uses: actions/checkout@v4
+
+    - name: 'Authenticate to Google Cloud'
+      uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: ${{ secrets.wif_provider }}
+        service_account: ${{ secrets.service_account }}
+
+    - name: 'Set up Cloud SDK'
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: 'Download Provider Configuration'
+      run: |
+        gcloud storage cp gs://${{ secrets.outputs_bucket }}/providers/${{ inputs.stage }}-providers.tf ./terraform/providers.tf
+      continue-on-error: true
+
+    - name: 'Download Output Dependencies'
+      run: |
+        mkdir -p terraform/output_files
+        gcloud storage cp gs://${{ secrets.outputs_bucket }}/outputs/vpc-foundation-outputs.json ./terraform/output_files/ || echo "No VPC foundation outputs"
+        gcloud storage cp gs://${{ secrets.outputs_bucket }}/outputs/palo-alto-outputs.json ./terraform/output_files/ || echo "No Palo Alto outputs"
+      continue-on-error: true
+
+    - name: 'Prepare Variables File'
+      if: ${{ secrets.organization_id != '' }}
+      env:
+        ORGANIZATION_ID: ${{ secrets.organization_id }}
+        ORGANIZATION_DOMAIN: ${{ secrets.organization_domain }}
+        CUSTOMER_ID: ${{ secrets.customer_id }}
+        BILLING_ACCOUNT_ID: ${{ secrets.billing_account_id }}
+        REPOSITORY_ORGANIZATION: ${{ secrets.repository_organization }}
+      run: |
+        if [ -f terraform/terraform.tfvars.cicd ]; then
+          envsubst < terraform/terraform.tfvars.cicd > terraform/terraform.tfvars
+        fi
+      continue-on-error: true
+
+    - name: 'Setup Terraform'
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: '>= 1.5'
+        terraform_wrapper: false
+
+    - name: 'Terraform Init'
+      run: terraform init
+      working-directory: terraform/
+
+    - name: 'Terraform Plan'
+      run: terraform plan -input=false -out=tfplan
+      working-directory: terraform/
+
+    - name: 'Terraform Apply'
+      run: terraform apply -input=false -auto-approve tfplan
+      working-directory: terraform/
+
+    - name: 'Capture Terraform Outputs'
+      id: outputs
+      run: |
+        terraform output -json > outputs.json
+        cat outputs.json
+      working-directory: terraform/
+      continue-on-error: true
+
+    - name: 'Upload Outputs to GCS'
+      if: steps.outputs.outcome == 'success'
+      run: |
+        gcloud storage cp terraform/outputs.json gs://${{ secrets.outputs_bucket }}/outputs/${{ inputs.stage }}-outputs.json
+        gcloud storage cp terraform/outputs.json gs://${{ secrets.outputs_bucket }}/outputs/${{ inputs.stage }}-outputs-${{ github.sha }}.json
+      continue-on-error: true
+
+    - name: 'Upload Provider Config to GCS'
+      run: |
+        if [ -f terraform/providers.tf ]; then
+          gcloud storage cp terraform/providers.tf gs://${{ secrets.outputs_bucket }}/providers/${{ inputs.stage }}-providers.tf
+        fi
+      continue-on-error: true
+
+    - name: 'Upload Terraform Outputs Artifact'
+      if: steps.outputs.outcome == 'success'
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.stage }}-outputs-${{ github.sha }}
+        path: terraform/outputs.json
+        retention-days: 90
+
+    - name: 'Create Deployment Summary'
+      if: always()
+      run: |
+        echo "## 🚀 Terraform Apply Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Stage:** ${{ inputs.stage }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Environment:** ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "✅ Infrastructure deployed successfully" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ Deployment failed" >> $GITHUB_STEP_SUMMARY
+        fi
