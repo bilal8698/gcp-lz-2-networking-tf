@@ -1,0 +1,87 @@
+name: Validation
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+jobs:
+  validation:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+      
+      - name: Terraform Format Check
+        id: fmt
+        run: |
+          terraform fmt -check -recursive
+        working-directory: terraform/
+        continue-on-error: true
+      
+      - name: Report Format Issues
+        if: steps.fmt.outcome == 'failure'
+        run: |
+          echo "❌ Terraform formatting issues found. Run 'terraform fmt -recursive' to fix."
+          exit 1
+      
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v3
+        with:
+          tflint_version: latest
+      
+      - name: Initialize TFLint
+        run: tflint --init
+        working-directory: terraform/
+      
+      - name: Run TFLint
+        run: |
+          tflint -f compact --recursive
+        working-directory: terraform/
+      
+      - name: Terraform Init (for validation)
+        run: terraform init -backend=false
+        working-directory: terraform/
+      
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: terraform/
+      
+      - name: Check for TODO/FIXME comments
+        run: |
+          if grep -rn "TODO\|FIXME" terraform/ --include="*.tf"; then
+            echo "⚠️ Found TODO/FIXME comments in code"
+          else
+            echo "✅ No TODO/FIXME comments found"
+          fi
+        continue-on-error: true
+      
+      - name: Validate YAML Configuration Files
+        run: |
+          for file in data/*.yaml; do
+            echo "Validating $file"
+            python3 -c "import yaml; yaml.safe_load(open('$file'))"
+          done
+      
+      - name: Check for sensitive data
+        run: |
+          if grep -rn "password\|secret\|api_key" terraform/ data/ --include="*.tf" --include="*.yaml" | grep -v "secret_name\|secret_id\|secrets_manager"; then
+            echo "⚠️ Potential sensitive data found in configuration files"
+            exit 1
+          else
+            echo "✅ No sensitive data found"
+          fi
+      
+      - name: Validation Summary
+        if: always()
+        run: |
+          echo "## 🎯 Validation Complete"
+          echo "- Terraform Format: ${{ steps.fmt.outcome }}"
+          echo "- All validation checks completed"

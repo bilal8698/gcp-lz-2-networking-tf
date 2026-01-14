@@ -1,0 +1,113 @@
+name: Terraform Destroy
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type "destroy" to confirm'
+        required: true
+        type: string
+      target_resources:
+        description: 'Specific resources to destroy (optional, comma-separated)'
+        required: false
+        type: string
+
+env:
+  TF_VERSION: '1.5.0'
+  WORKING_DIR: 'terraform'
+
+jobs:
+  terraform-destroy:
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    
+    steps:
+      - name: Validate Confirmation
+        run: |
+          if [ "${{ inputs.confirmation }}" != "destroy" ]; then
+            echo "❌ Confirmation failed. You must type 'destroy' to proceed."
+            exit 1
+          fi
+          echo "✅ Confirmation validated"
+      
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+      
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+      
+      - name: Setup Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+      
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ${{ env.WORKING_DIR }}
+      
+      - name: Backup Current State
+        run: |
+          terraform state pull > state-backup-${{ github.sha }}.json
+        working-directory: ${{ env.WORKING_DIR }}
+      
+      - name: Upload State Backup
+        uses: actions/upload-artifact@v3
+        with:
+          name: state-backup-${{ github.sha }}
+          path: ${{ env.WORKING_DIR }}/state-backup-${{ github.sha }}.json
+          retention-days: 90
+      
+      - name: Generate Destroy Plan
+        run: |
+          if [ -n "${{ inputs.target_resources }}" ]; then
+            IFS=',' read -ra RESOURCES <<< "${{ inputs.target_resources }}"
+            TARGET_ARGS=""
+            for resource in "${RESOURCES[@]}"; do
+              TARGET_ARGS="$TARGET_ARGS -target=$(echo $resource | xargs)"
+            done
+            terraform plan -destroy $TARGET_ARGS -out=destroy.tfplan
+          else
+            terraform plan -destroy -out=destroy.tfplan
+          fi
+        working-directory: ${{ env.WORKING_DIR }}
+      
+      - name: Show Destroy Plan
+        run: terraform show destroy.tfplan
+        working-directory: ${{ env.WORKING_DIR }}
+      
+      - name: Terraform Destroy
+        id: destroy
+        run: |
+          terraform apply -auto-approve destroy.tfplan
+        working-directory: ${{ env.WORKING_DIR }}
+      
+      - name: Create Destroy Summary
+        if: always()
+        run: |
+          echo "## 🗑️ Terraform Destroy Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ steps.destroy.outcome }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "**Target Resources:** ${{ inputs.target_resources || 'All resources' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.destroy.outcome }}" == "success" ]; then
+            echo "✅ Infrastructure destroyed successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Destroy operation failed" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          echo "❌ Terraform destroy failed. Please check the logs."
+          echo "State backup available in artifacts: state-backup-${{ github.sha }}.json"

@@ -6,11 +6,28 @@ on:
     paths:
       - 'terraform/**'
       - 'data/**'
+  workflow_dispatch:
+    inputs:
+      deploy_transit_spoke:
+        description: 'Deploy Transit Spoke'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+env:
+  TF_VERSION: '1.5.0'
+  WORKING_DIR: 'terraform'
 
 jobs:
   terraform-apply:
     runs-on: ubuntu-latest
     environment: production
+    permissions:
+      contents: read
+      id-token: write
     
     steps:
       - name: Checkout code
@@ -19,27 +36,103 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.5.0
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
       
       - name: Authenticate to GCP
+        id: auth
         uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GCP_CREDENTIALS }}
       
-      - name: Terraform Init
-        run: terraform init
-        working-directory: terraform/
+      - name: Setup Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
       
-      - name: Terraform Apply
+      - name: Verify GCP Authentication
         run: |
-          terraform apply \
-            -var="outputs_bucket=carrier-terraform-outputs" \
-            -var="deploy_transit_spoke=false" \
-            -auto-approve
-        working-directory: terraform/
+          gcloud auth list
+          gcloud config list
       
-      - name: Upload State Summary
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: ${{ env.WORKING_DIR }}
+      
+      - name: Determine Transit Spoke Deployment
+        id: transit_spoke
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "deploy_transit_spoke=${{ inputs.deploy_transit_spoke }}" >> $GITHUB_OUTPUT
+          else
+            echo "deploy_transit_spoke=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Terraform Plan (Pre-Apply)
+        id: plan
+        run: |
+          terraform plan \
+            -var="outputs_bucket=${{ secrets.OUTPUTS_BUCKET || 'carrier-terraform-outputs' }}" \
+            -var="deploy_transit_spoke=${{ steps.transit_spoke.outputs.deploy_transit_spoke }}" \
+            -out=tfplan
+        working-directory: ${{ env.WORKING_DIR }}
+      
+      - name: Save Pre-Apply Plan
         uses: actions/upload-artifact@v3
         with:
-          name: terraform-state
-          path: terraform/.terraform
+          name: pre-apply-plan-${{ github.sha }}
+          path: ${{ env.WORKING_DIR }}/tfplan
+          retention-days: 30
+      
+      - name: Terraform Apply
+        id: apply
+        run: |
+          terraform apply \
+            -auto-approve \
+            tfplan
+        working-directory: ${{ env.WORKING_DIR }}
+      
+      - name: Capture Terraform Outputs
+        id: outputs
+        run: |
+          terraform output -json > outputs.json
+          cat outputs.json
+        working-directory: ${{ env.WORKING_DIR }}
+        continue-on-error: true
+      
+      - name: Upload Outputs to GCS
+        if: steps.outputs.outcome == 'success'
+        run: |
+          gsutil cp ${{ env.WORKING_DIR }}/outputs.json gs://${{ secrets.OUTPUTS_BUCKET || 'carrier-terraform-outputs' }}/ncc-hub-spoke/outputs-${{ github.sha }}.json
+          gsutil cp ${{ env.WORKING_DIR }}/outputs.json gs://${{ secrets.OUTPUTS_BUCKET || 'carrier-terraform-outputs' }}/ncc-hub-spoke/outputs-latest.json
+        continue-on-error: true
+      
+      - name: Upload Terraform Outputs
+        if: steps.outputs.outcome == 'success'
+        uses: actions/upload-artifact@v3
+        with:
+          name: terraform-outputs-${{ github.sha }}
+          path: ${{ env.WORKING_DIR }}/outputs.json
+          retention-days: 90
+      
+      - name: Create Deployment Summary
+        if: always()
+        run: |
+          echo "## 🚀 Terraform Apply Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ steps.apply.outcome }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Transit Spoke Deployed:** ${{ steps.transit_spoke.outputs.deploy_transit_spoke }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.apply.outcome }}" == "success" ]; then
+            echo "✅ Infrastructure deployed successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Deployment failed" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          echo "❌ Terraform apply failed. Please check the logs and state file."
+          echo "Run 'terraform state list' to verify current state."

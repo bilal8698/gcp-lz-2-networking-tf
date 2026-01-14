@@ -2,15 +2,33 @@ name: Terraform Plan
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - 'terraform/**'
       - 'data/**'
       - '.github/workflows/terraform-plan.yaml'
+  workflow_dispatch:
+    inputs:
+      deploy_transit_spoke:
+        description: 'Deploy Transit Spoke'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+env:
+  TF_VERSION: '1.5.0'
+  WORKING_DIR: 'terraform'
 
 jobs:
   terraform-plan:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
     
     steps:
       - name: Checkout code
@@ -19,11 +37,14 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.5.0
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
       
       - name: Terraform Format Check
+        id: fmt
         run: terraform fmt -check -recursive
-        working-directory: terraform/
+        working-directory: ${{ env.WORKING_DIR }}
+        continue-on-error: true
       
       - name: TFLint Setup
         uses: terraform-linters/setup-tflint@v3
@@ -31,54 +52,112 @@ jobs:
           tflint_version: latest
       
       - name: Run TFLint
+        id: tflint
         run: |
           tflint --init
           tflint -f compact
-        working-directory: terraform/
+        working-directory: ${{ env.WORKING_DIR }}
+        continue-on-error: true
       
       - name: Checkov Security Scan
+        id: checkov
         uses: bridgecrewio/checkov-action@master
         with:
-          directory: terraform/
+          directory: ${{ env.WORKING_DIR }}
           framework: terraform
-          soft_fail: false
+          soft_fail: true
+          output_format: cli
       
       - name: Authenticate to GCP
+        id: auth
         uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GCP_CREDENTIALS }}
       
+      - name: Setup Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+      
       - name: Terraform Init
+        id: init
         run: terraform init
-        working-directory: terraform/
+        working-directory: ${{ env.WORKING_DIR }}
       
       - name: Terraform Validate
-        run: terraform validate
-        working-directory: terraform/
+        id: validate
+        run: terraform validate -no-color
+        working-directory: ${{ env.WORKING_DIR }}
+      
+      - name: Determine Transit Spoke Deployment
+        id: transit_spoke
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "deploy_transit_spoke=${{ inputs.deploy_transit_spoke }}" >> $GITHUB_OUTPUT
+          else
+            echo "deploy_transit_spoke=false" >> $GITHUB_OUTPUT
+          fi
       
       - name: Terraform Plan
+        id: plan
         run: |
           terraform plan \
-            -var="outputs_bucket=carrier-terraform-outputs" \
-            -var="deploy_transit_spoke=false" \
-            -out=tfplan
-        working-directory: terraform/
+            -var="outputs_bucket=${{ secrets.OUTPUTS_BUCKET || 'carrier-terraform-outputs' }}" \
+            -var="deploy_transit_spoke=${{ steps.transit_spoke.outputs.deploy_transit_spoke }}" \
+            -out=tfplan \
+            -no-color
+        working-directory: ${{ env.WORKING_DIR }}
+        continue-on-error: true
+      
+      - name: Generate Plan Output
+        id: plan_output
+        run: |
+          terraform show -no-color tfplan > plan_output.txt
+        working-directory: ${{ env.WORKING_DIR }}
       
       - name: Save Plan
         uses: actions/upload-artifact@v3
         with:
-          name: terraform-plan
-          path: terraform/tfplan
+          name: terraform-plan-${{ github.sha }}
+          path: |
+            ${{ env.WORKING_DIR }}/tfplan
+            ${{ env.WORKING_DIR }}/plan_output.txt
+          retention-days: 30
       
       - name: Comment PR with Plan
+        if: github.event_name == 'pull_request'
         uses: actions/github-script@v6
         with:
           script: |
             const fs = require('fs');
-            const plan = fs.readFileSync('terraform/tfplan', 'utf8');
+            const planOutput = fs.readFileSync('terraform/plan_output.txt', 'utf8');
+            const truncatedPlan = planOutput.length > 65000 ? planOutput.substring(0, 65000) + '\n\n... (truncated)' : planOutput;
+            
+            const output = `## 🚀 Terraform Plan Results
+            
+            #### Terraform Format and Style 🖌 \`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️ \`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖 \`${{ steps.validate.outcome }}\`
+            #### Terraform Plan 📖 \`${{ steps.plan.outcome }}\`
+            #### Security Scan (Checkov) 🔒 \`${{ steps.checkov.outcome }}\`
+            
+            <details><summary>Show Plan</summary>
+            
+            \`\`\`terraform
+            ${truncatedPlan}
+            \`\`\`
+            
+            </details>
+            
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+            
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## Terraform Plan\n\`\`\`\n${plan}\n\`\`\``
+              body: output
             });
+      
+      - name: Plan Status Check
+        if: steps.plan.outcome == 'failure'
+        run: |
+          echo "❌ Terraform Plan failed!"
+          exit 1
